@@ -6,6 +6,8 @@ Automated provisioning for [Sprites](https://sprites.dev) dev environments.
 
 - **Docker** — Docker Engine, CLI, containerd, buildx, and compose plugin. Daemon is started after install.
 - **Codex** — OpenAI Codex CLI (`@openai/codex`), with auth config copied from local `~/.codex/auth.json`.
+- **Playwright MCP** — Playwright MCP server (`@playwright/mcp`) with Chromium browser installed.
+- **GitHub CLI** — `gh` CLI, pre-authenticated with auth copied from local `~/.config/gh/hosts.yml`.
 
 ## Usage
 
@@ -28,6 +30,8 @@ Individual install scripts can be run standalone:
 ```bash
 SPRITE_NAME=my-sprite bash scripts/install_docker.sh
 SPRITE_NAME=my-sprite bash scripts/install_codex.sh
+SPRITE_NAME=my-sprite bash scripts/install_playwright_mcp.sh
+SPRITE_NAME=my-sprite bash scripts/install_gh.sh
 ```
 
 ## Structure
@@ -35,6 +39,8 @@ SPRITE_NAME=my-sprite bash scripts/install_codex.sh
 - `setup.sh` — Entry point. Creates the sprite and runs all install scripts.
 - `scripts/install_docker.sh` — Installs Docker and starts the daemon.
 - `scripts/install_codex.sh` — Installs Codex and copies auth config.
+- `scripts/install_playwright_mcp.sh` — Installs Playwright MCP server and Chromium.
+- `scripts/install_gh.sh` — Installs GitHub CLI and copies auth config.
 - `scripts/validate.sh` — Checks that all expected tools are installed and running.
 
 ## Maintenance
