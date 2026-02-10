@@ -53,7 +53,12 @@ BASE_URL="https://dissonantp.github.io/sprite-environment"
 if [ -f "$DIR/scripts/install_docker.sh" ]; then
   run_script() { SPRITE_NAME=$SPRITE_NAME bash "$DIR/$1"; }
 else
-  run_script() { curl -sL "$BASE_URL/$1" | SPRITE_NAME=$SPRITE_NAME bash; }
+  run_script() {
+    local tmp=$(mktemp)
+    curl -sL "$BASE_URL/$1" -o "$tmp"
+    SPRITE_NAME=$SPRITE_NAME bash "$tmp"
+    rm -f "$tmp"
+  }
 fi
 
 ################################################################
