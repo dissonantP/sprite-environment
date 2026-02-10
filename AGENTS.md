@@ -54,8 +54,16 @@ SPRITE_NAME=my-sprite bash scripts/install_gh.sh
 - `scripts/install_gh.sh` — Authenticates the pre-installed gh CLI via token injection.
 - `scripts/validate.sh` — Checks that all expected tools are installed and running.
 
+## Remote usage
+
+The repo is public and served via GitHub Pages. Project repos can call setup remotely:
+
+```bash
+curl -sL https://dissonantp.github.io/sprite-environment/setup.sh | bash -s -- --name my-sprite
+```
+
+When run this way, sub-scripts are fetched from the same GitHub Pages URL automatically.
+
 ## Maintenance
 
 When adding new install scripts, add corresponding checks to `scripts/validate.sh` to keep validation up to date.
-
-Changes are committed and pushed to the private `sprite-environment` GitHub repo.

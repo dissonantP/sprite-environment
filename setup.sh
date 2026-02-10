@@ -44,30 +44,41 @@ else
 fi
 
 ################################################################
-# Run scripts
+# Script runner (local or remote)
 ################################################################
 
-DIR="$(cd "$(dirname "$0")" && pwd)"
+DIR="$(cd "$(dirname "$0")" 2>/dev/null && pwd)"
+BASE_URL="https://dissonantp.github.io/sprite-environment"
+
+if [ -f "$DIR/scripts/install_docker.sh" ]; then
+  run_script() { SPRITE_NAME=$SPRITE_NAME bash "$DIR/$1"; }
+else
+  run_script() { curl -sL "$BASE_URL/$1" | SPRITE_NAME=$SPRITE_NAME bash; }
+fi
+
+################################################################
+# Run scripts
+################################################################
 
 # INSTALL DOCKER
 if [ -z "$SKIP_DOCKER" ]; then
   echo "==> Installing Docker"
-  bash "$DIR/scripts/install_docker.sh"
+  run_script "scripts/install_docker.sh"
 else
   echo "==> Skipping Docker (--skip-docker)"
 fi
 
 # INSTALL CODEX
 echo "==> Installing Codex"
-bash "$DIR/scripts/install_codex.sh"
+run_script "scripts/install_codex.sh"
 
 # INSTALL MCPS
 echo "==> Installing Playwright MCP"
-bash "$DIR/scripts/install_playwright_mcp.sh"
+run_script "scripts/install_playwright_mcp.sh"
 
 # INSTALL GH CLI
 echo "==> Installing GitHub CLI"
-bash "$DIR/scripts/install_gh.sh"
+run_script "scripts/install_gh.sh"
 
 # CLONE REPO
 if [ -n "$REPO" ]; then
@@ -77,7 +88,7 @@ fi
 
 # VALIDATE
 echo "==> Validating"
-bash "$DIR/scripts/validate.sh"
+run_script "scripts/validate.sh"
 
 # ALL DONE!
 echo "==> Done"
