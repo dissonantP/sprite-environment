@@ -1,71 +1,86 @@
-# Sprite Setup System
+# AGENTS.md — LLM Developer Guide
 
-Automated provisioning for [Sprites](https://sprites.dev) dev environments.
+Keep this file and `README.md` up to date when making changes. This file is for LLM agents working on the codebase. README.md is the human-facing summary.
 
-## What gets installed
+## Overview
 
-- **Docker** — Docker Engine (docker.io), Compose plugin, overlay2 storage. Daemon started via sprite service. All commands require `sudo`.
-- **Codex** — OpenAI Codex CLI (`@openai/codex`), with auth config copied from local machine.
-- **Playwright MCP** — Playwright MCP server (`@playwright/mcp`) with Chrome browser, registered with Codex.
-- **GitHub CLI** — `gh` CLI (pre-installed on sprites), authenticated via token from local keychain. SSH keys uploaded.
+This repo provisions [Sprites](https://sprites.dev) dev environments. It runs locally on the user's machine and uses `sprite exec` to run commands on the remote sprite. Scripts are served via GitHub Pages at `https://dissonantp.github.io/sprite-environment/` so project repos can call setup without cloning this repo.
 
-## Usage
+## Execution model
 
-Create and provision a new sprite:
+`setup.sh` is the entry point. It can run locally (`bash setup.sh`) or be fetched remotely (`curl | bash`). It detects which mode it's in by checking if `scripts/install_docker.sh` exists next to itself. In remote mode, each sub-script is downloaded to a temp file before execution.
 
-```bash
-bash setup.sh --name my-sprite
+**Critical: never pipe sub-scripts directly from curl to bash.** `sprite exec` consumes stdin, which breaks piped execution. Always download to a temp file first. See `run_script()` in setup.sh.
+
+## Config system
+
+`config.yaml` is flat key-value YAML parsed by the `cfg()` function in setup.sh using grep/sed (no external YAML parser needed). Values can contain `$HOME` which gets expanded via `eval echo`.
+
+Config resolution order:
+1. `--config` CLI arg (explicit path)
+2. `config.yaml` next to setup.sh (local runs)
+3. Remote `config.yaml` from GitHub Pages (remote runs)
+
+Config values are exported as env vars to sub-scripts: `CODEX_AUTH_FILE`, `GH_SSH_KEY`, `DOCKER_GHCR_LOGIN`, `DOCKER_GHCR_USER`. Sub-scripts use these with fallback defaults so they work standalone too.
+
+Config keys:
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `install_gh` | bool | `true` | Authenticate gh CLI and upload SSH keys. Requires local `gh auth login` first. |
+| `gh_ssh_key` | path | `$HOME/.ssh/id_ed25519_dissonantP` | Private key to upload (`.pub` appended for public). Uploaded as `id_ed25519` on sprite. |
+| `install_docker` | bool | `true` | Install Docker Engine, Compose plugin, overlay2 storage. |
+| `docker_ghcr_login` | bool | `true` | Login to ghcr.io using gh token. Requires `install_gh: true`. |
+| `docker_ghcr_user` | string | `dissonantP` | GitHub username for ghcr.io auth. |
+| `install_codex` | bool | `true` | Install Codex CLI globally via npm. |
+| `codex_auth_file` | path | `$HOME/.codex/auth.json` | Local auth file to copy into sprite. |
+| `repo` | string | (empty) | GitHub repo to clone (e.g. `owner/repo`). Overridden by `--repo` CLI arg. |
+| `install_playwright_mcp` | bool | `true` | Install Playwright MCP and register with Codex. |
+
+## Script execution order
+
+1. **install_gh.sh** — Runs first because Docker needs the gh token for ghcr.io login.
+2. **install_docker.sh** — Must use `docker.io` from apt (not `docker-ce`). Uses overlay2 storage driver. Daemon started via `sprite-env services create` (not systemd/nohup). All docker commands require `sudo`.
+3. **install_codex.sh** — Installs via npm, copies auth file using `sprite exec -file`.
+4. **install_playwright_mcp.sh** — Installs via npm, installs Chrome, registers with `codex mcp add`.
+5. **install_cheatsheet.sh** — Writes ~/CHEATSHEET.md on the sprite.
+6. **validate.sh** — Checks all components are working.
+
+Each script is idempotent with a guard clause at the top (checks if already installed, exits 0 if so).
+
+## Sprite environment constraints
+
+- **No systemd.** Start daemons via `sprite-env services create`.
+- **Cgroups v2 restricted.** Only `cpuset cpu pids` controllers available. Memory and IO controllers are not available. Docker containers cannot have resource limits.
+- **`sprite exec` flag parsing.** Commands with flags (like `mkdir -p`) get their flags parsed as sprite exec flags. Always wrap in `bash -c '...'`.
+- **`sprite exec -file`** uploads local files: `sprite exec -s NAME -file "local:remote" true`. The `true` at the end is a required command arg.
+- **`sudo` required for docker.** All docker/docker compose commands need `sudo` on sprites.
+- **gh is pre-installed** on sprites. No apt install needed, just token injection.
+
+## File structure
+
+```
+setup.sh                      # Entry point, arg parsing, config loading, orchestration
+config.yaml                   # Default config values (flat YAML with comments)
+README.md                     # Human-facing docs
+AGENTS.md                     # This file (LLM developer docs)
+scripts/
+  install_gh.sh               # gh auth + SSH key upload
+  install_docker.sh           # docker.io + compose plugin + overlay2 + sprite service + ghcr.io login
+  install_codex.sh            # codex CLI + auth file copy
+  install_playwright_mcp.sh   # playwright MCP + chrome + codex registration
+  install_cheatsheet.sh       # ~/CHEATSHEET.md on sprite
+  validate.sh                 # health checks for all components
 ```
 
-Options:
+## Adding a new install script
 
-- `--config path/to/config.yaml` — Use a custom config file (defaults to `config.yaml` in repo root).
-- `--repo owner/repo` — Clone a GitHub repo after setup.
+1. Create `scripts/install_foo.sh` with an idempotency guard at the top.
+2. Add a config key `install_foo: true` to `config.yaml`.
+3. Add the `cfg` check and `run_script` call to `setup.sh`.
+4. Add a corresponding check to `scripts/validate.sh`.
+5. Update this file and `README.md`.
 
-```bash
-bash setup.sh --name my-sprite --config my-config.yaml --repo myorg/myrepo
-```
+## GitHub Pages
 
-Sprite names must be lowercase alphanumeric with hyphens.
-
-Scripts are idempotent — running against an existing sprite skips already-installed components.
-
-## Configuration
-
-Edit `config.yaml` to control what gets installed and with what settings. All values have sensible defaults. See comments in the file for details.
-
-Project repos can provide their own `config.yaml` via `--config`:
-
-```bash
-bash setup.sh --name my-sprite --config /path/to/project/config.yaml
-```
-
-## Structure
-
-- `setup.sh` — Entry point. Reads config, creates the sprite, runs install scripts.
-- `config.yaml` — Default configuration values with comments.
-- `scripts/install_docker.sh` — Installs Docker and starts the daemon.
-- `scripts/install_codex.sh` — Installs Codex and copies auth config.
-- `scripts/install_playwright_mcp.sh` — Installs Playwright MCP server and Chrome.
-- `scripts/install_gh.sh` — Authenticates gh CLI via token injection and uploads SSH keys.
-- `scripts/install_cheatsheet.sh` — Installs a command cheatsheet at ~/CHEATSHEET.md.
-- `scripts/validate.sh` — Checks that all expected tools are installed and running.
-
-## Remote usage
-
-The repo is public and served via GitHub Pages. Project repos can call setup remotely:
-
-```bash
-curl -sL https://dissonantp.github.io/sprite-environment/setup.sh -o /tmp/setup.sh
-bash /tmp/setup.sh --name my-sprite
-```
-
-When run this way, sub-scripts and config are fetched from GitHub Pages automatically. You can still override config with a local file:
-
-```bash
-bash /tmp/setup.sh --name my-sprite --config ./config.yaml
-```
-
-## Maintenance
-
-When adding new install scripts, add corresponding checks to `scripts/validate.sh` to keep validation up to date.
+The repo is public. Pages serves from the `master` branch root. Deploys take ~30-60 seconds after push. All files in the repo are accessible at `https://dissonantp.github.io/sprite-environment/<path>`.
