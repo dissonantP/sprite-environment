@@ -60,7 +60,11 @@ curl -sL https://dissonantp.github.io/sprite-environment/setup.sh -o /tmp/setup.
 bash /tmp/setup.sh --name my-sprite
 ```
 
-When run this way, sub-scripts and config are fetched from GitHub Pages automatically.
+When run this way, sub-scripts and config are fetched from GitHub Pages automatically. You can still override config with a local file:
+
+```bash
+bash /tmp/setup.sh --name my-sprite --config ./config.yaml
+```
 
 ## Maintenance
 
