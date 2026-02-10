@@ -1,5 +1,10 @@
 # Sprite Environment Configuration
 # These defaults can be overridden per-project or per-run.
+# Any key can also be set via CLI: --key value (e.g. --install_docker false)
+
+# ── Sprite ─────────────────────────────────────────────
+# Name of the sprite to create/update (also settable via --name)
+sprite_name:
 
 # ── Codex ──────────────────────────────────────────────
 # Install OpenAI Codex CLI and copy auth config

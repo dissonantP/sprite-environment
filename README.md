@@ -32,10 +32,11 @@ bash /tmp/setup.sh --name my-sprite --repo owner/repo
 | `--name` | Sprite name (required, lowercase alphanumeric with hyphens) |
 | `--repo owner/repo` | Clone a GitHub repo after setup |
 | `--config path` | Custom config file (defaults to `config.yaml`) |
+| `--<key> <value>` | Override any config key (e.g. `--install_docker false`) |
 
 ## Configuration
 
-Edit `config.yaml` to toggle components and set paths. See comments in the file.
+Edit `config.yaml` to toggle components and set paths. See comments in the file. All keys can also be set via CLI args.
 
 ## Prerequisites
 

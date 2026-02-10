@@ -23,10 +23,13 @@ Config resolution order:
 
 Config values are exported as env vars to sub-scripts: `CODEX_AUTH_FILE`, `GH_SSH_KEY`, `DOCKER_GHCR_LOGIN`, `DOCKER_GHCR_USER`. Sub-scripts use these with fallback defaults so they work standalone too.
 
+Every config key can be overridden via CLI: `--key value`. `--name` is an alias for `--sprite_name`, `--repo` is an alias for `--repo`. All other keys use their exact name (e.g. `--install_docker false`). CLI args are written to a temp overrides file and checked first by `cfg()`.
+
 Config keys:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| `sprite_name` | string | (required) | Name of the sprite. Set via `--name` or config. |
 | `install_gh` | bool | `true` | Authenticate gh CLI and upload SSH keys. Requires local `gh auth login` first. |
 | `gh_ssh_key` | path | `$HOME/.ssh/id_ed25519_dissonantP` | Private key to upload (`.pub` appended for public). Uploaded as `id_ed25519` on sprite. |
 | `install_docker` | bool | `true` | Install Docker Engine, Compose plugin, overlay2 storage. |
@@ -34,7 +37,7 @@ Config keys:
 | `docker_ghcr_user` | string | `dissonantP` | GitHub username for ghcr.io auth. |
 | `install_codex` | bool | `true` | Install Codex CLI globally via npm. |
 | `codex_auth_file` | path | `$HOME/.codex/auth.json` | Local auth file to copy into sprite. |
-| `repo` | string | (empty) | GitHub repo to clone (e.g. `owner/repo`). Overridden by `--repo` CLI arg. |
+| `repo` | string | (empty) | GitHub repo to clone (e.g. `owner/repo`). |
 | `install_playwright_mcp` | bool | `true` | Install Playwright MCP and register with Codex. |
 
 ## Script execution order

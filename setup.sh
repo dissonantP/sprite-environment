@@ -2,35 +2,20 @@
 set -e
 
 ################################################################
-# Command line args
+# Command line args (any --key value sets a config override)
 ################################################################
+
+_CLI_OVERRIDES=$(mktemp)
 
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --name) export SPRITE_NAME="$2"; shift 2 ;;
     --config) CONFIG_FILE="$2"; shift 2 ;;
-    --repo) REPO="$2"; shift 2 ;;
+    --name) echo "sprite_name: $2" >> "$_CLI_OVERRIDES"; shift 2 ;;
+    --repo) echo "repo: $2" >> "$_CLI_OVERRIDES"; shift 2 ;;
+    --*) echo "${1#--}: $2" >> "$_CLI_OVERRIDES"; shift 2 ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
 done
-
-################################################################
-# Validate that sprite name was provided
-################################################################
-
-if [ -z "$SPRITE_NAME" ]; then
-  echo "Usage: setup.sh --name <sprite-name> [--config path/to/config.yaml] [--repo owner/repo]"
-  exit 1
-fi
-
-################################################################
-# Validate sprite naming (lowercase)
-################################################################
-
-if [[ ! "$SPRITE_NAME" =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]]; then
-  echo "Error: sprite name must be lowercase alphanumeric with hyphens (e.g. my-sprite)"
-  exit 1
-fi
 
 ################################################################
 # Load config
@@ -40,26 +25,46 @@ DIR="$(cd "$(dirname "$0")" 2>/dev/null && pwd)"
 BASE_URL="https://dissonantp.github.io/sprite-environment"
 
 # Parse a value from config YAML (flat key: value only)
+# Resolution: CLI overrides > --config file > local config.yaml > remote config.yaml
 cfg() {
-  local key="$1" default="$2" file="${CONFIG_FILE:-}"
-  # Try local config.yaml if no --config provided
-  if [ -z "$file" ] && [ -f "$DIR/config.yaml" ]; then
-    file="$DIR/config.yaml"
-  fi
-  # Try remote config.yaml
-  if [ -z "$file" ]; then
-    if [ -z "$_REMOTE_CONFIG" ]; then
-      _REMOTE_CONFIG=$(mktemp)
-      curl -sL "$BASE_URL/config.yaml" -o "$_REMOTE_CONFIG"
+  local key="$1" default="$2" val=""
+  # Check CLI overrides first
+  val=$(grep "^${key}:" "$_CLI_OVERRIDES" 2>/dev/null | tail -1 | sed 's/^[^:]*: *//' | sed 's/ *$//')
+  # Then config file
+  if [ -z "$val" ]; then
+    local file="${CONFIG_FILE:-}"
+    if [ -z "$file" ] && [ -f "$DIR/config.yaml" ]; then
+      file="$DIR/config.yaml"
     fi
-    file="$_REMOTE_CONFIG"
+    if [ -z "$file" ]; then
+      if [ -z "$_REMOTE_CONFIG" ]; then
+        _REMOTE_CONFIG=$(mktemp)
+        curl -sL "$BASE_URL/config.yaml" -o "$_REMOTE_CONFIG"
+      fi
+      file="$_REMOTE_CONFIG"
+    fi
+    val=$(grep "^${key}:" "$file" 2>/dev/null | head -1 | sed 's/^[^:]*: *//' | sed 's/ *$//')
   fi
-  local val
-  val=$(grep "^${key}:" "$file" 2>/dev/null | head -1 | sed 's/^[^:]*: *//' | sed 's/ *$//')
   # Expand $HOME in values
   val=$(eval echo "$val")
   if [ -z "$val" ]; then echo "$default"; else echo "$val"; fi
 }
+
+################################################################
+# Resolve sprite name
+################################################################
+
+export SPRITE_NAME=$(cfg sprite_name "")
+
+if [ -z "$SPRITE_NAME" ]; then
+  echo "Usage: setup.sh --name <sprite-name> [--config path] [--key value ...]"
+  exit 1
+fi
+
+if [[ ! "$SPRITE_NAME" =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]]; then
+  echo "Error: sprite name must be lowercase alphanumeric with hyphens (e.g. my-sprite)"
+  exit 1
+fi
 
 ################################################################
 # Create Sprite (skip if already exists)
@@ -128,7 +133,7 @@ else
 fi
 
 # CLONE REPO
-REPO="${REPO:-$(cfg repo "")}"
+REPO=$(cfg repo "")
 if [ -n "$REPO" ]; then
   echo "==> Cloning repo: $REPO"
   sprite exec -s $SPRITE_NAME gh repo clone "$REPO"
