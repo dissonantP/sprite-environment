@@ -1,6 +1,14 @@
 # sprite-environment
 
-Automated provisioning for [Sprites](https://sprites.dev) dev environments. Installs Docker, Codex, Playwright MCP, and GitHub CLI.
+Automated provisioning for [Sprites](https://sprites.dev) dev environments. Installs Docker, Codex, Playwright MCP, and GitHub CLI, all of which are pre-authenticated.
+
+## What it does
+
+- Installs Codex and copies `$HOME/.codex/auth.json`
+- Copies over `gh` login and local SSH key
+- Installs Docker with the Sprite-compatible setup (see `/.sprite/docs/docker.md` on the Sprite)
+- Logs into Docker using `gh` credentials
+- Installs Playwright MCP to Codex
 
 ## Quick start
 
