@@ -91,6 +91,10 @@ if [ -n "$REPO" ]; then
   sprite exec -s $SPRITE_NAME gh repo clone "$REPO"
 fi
 
+# CHEATSHEET
+echo "==> Installing cheatsheet"
+run_script "scripts/install_cheatsheet.sh"
+
 # VALIDATE
 echo "==> Validating"
 run_script "scripts/validate.sh"
