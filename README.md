@@ -38,7 +38,9 @@ bash /tmp/setup.sh --name my-sprite --repo owner/repo
 
 Edit `config.yaml` to toggle components and set paths. See comments in the file. All keys can also be set via CLI args.
 
-## Prerequisites
+## Assumptions
 
 - [Sprite CLI](https://sprites.dev) installed
-- `gh auth login` completed locally (for gh/SSH/Docker registry auth)
+- `gh auth login` completed locally, with `read:packages` scope (`gh auth refresh -s read:packages`)
+- `~/.codex/auth.json` exists (Codex auth config)
+- `~/.ssh/id_ed25519_dissonantP` and `.pub` exist (SSH keypair for GitHub)
