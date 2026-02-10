@@ -43,4 +43,4 @@ Edit `config.yaml` to toggle components and set paths. See comments in the file.
 - [Sprite CLI](https://sprites.dev) installed
 - `gh auth login` completed locally, with `read:packages` scope (`gh auth refresh -s read:packages`)
 - `~/.codex/auth.json` exists (Codex auth config)
-- `~/.ssh/id_ed25519_dissonantP` and `.pub` exist (SSH keypair for GitHub)
+- An SSH keypair in `~/.ssh/` for GitHub (set the key name in `config.yaml` via `gh_ssh_key`)
