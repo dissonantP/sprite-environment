@@ -8,5 +8,4 @@ mkdir -p ~/.codex
 npm i -g @openai/codex
 EOF
 
-# Copy auth.json into the sprite via base64 pipe
-base64 < ~/.codex/auth.json | sprite exec -s $SPRITE_NAME bash -c 'base64 -d > ~/.codex/auth.json'
+sprite exec -s $SPRITE_NAME -file "$HOME/.codex/auth.json:/home/sprite/.codex/auth.json" true
