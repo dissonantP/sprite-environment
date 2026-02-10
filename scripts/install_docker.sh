@@ -4,23 +4,27 @@ if sprite exec -s $SPRITE_NAME bash -c 'command -v docker' > /dev/null 2>&1; the
 fi
 
 sprite exec -s $SPRITE_NAME bash <<'EOF'
-sudo apt update
-sudo apt install -y ca-certificates curl
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
+sudo apt-get update
+sudo apt-get install -y docker.io
 
-sudo tee /etc/apt/sources.list.d/docker.sources <<SOURCES
-Types: deb
-URIs: https://download.docker.com/linux/ubuntu
-Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
-Components: stable
-Signed-By: /etc/apt/keyrings/docker.asc
-SOURCES
+# Configure overlay2 storage driver
+sudo mkdir -p /etc/docker
+sudo tee /etc/docker/daemon.json > /dev/null <<DAEMON
+{
+  "storage-driver": "overlay2"
+}
+DAEMON
 
-sudo apt update
-sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-nohup sudo dockerd > /var/log/dockerd.log 2>&1 &
+# Install docker compose v2 plugin
+COMPOSE_VERSION=$(curl -sL https://api.github.com/repos/docker/compose/releases/latest | grep tag_name | cut -d'"' -f4)
+sudo mkdir -p /usr/local/lib/docker/cli-plugins
+sudo curl -sL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-linux-x86_64" -o /usr/local/lib/docker/cli-plugins/docker-compose
+sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+# Start Docker as a sprite service
+sprite-env services create docker --cmd /usr/bin/sudo --args /usr/bin/dockerd
 sleep 2
-gh auth token | docker login ghcr.io -u dissonantP --password-stdin
+
+# Login to ghcr.io
+gh auth token | sudo docker login ghcr.io -u dissonantP --password-stdin
 EOF
