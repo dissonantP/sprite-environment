@@ -14,7 +14,7 @@ check() {
 
 check "Docker installed" "command -v docker"
 check "Docker running" "sudo docker info"
-check "Docker ghcr.io auth" "grep -q ghcr.io ~/.docker/config.json"
+check "Docker ghcr.io auth" "sudo grep -q ghcr.io /root/.docker/config.json"
 check "Docker Compose installed" "sudo docker compose version"
 check "Codex installed" "command -v codex"
 check "Codex auth configured" "test -f ~/.codex/auth.json"
