@@ -57,6 +57,67 @@ Each script is idempotent with a guard clause at the top (checks if already inst
 - **`sudo` required for docker.** All docker/docker compose commands need `sudo` on sprites.
 - **gh is pre-installed** on sprites. No apt install needed, just token injection.
 
+## Scripting patterns and gotchas
+
+These are hard-won lessons from building these scripts. Read before writing new ones.
+
+### sprite exec eats stdin
+
+`sprite exec` reads from stdin. If a script is piped via `curl | bash`, the first `sprite exec` call consumes the rest of the pipe and the script stops executing silently. **Always download to a temp file first**, then run with `bash "$tmp"`. This applies to both setup.sh calling sub-scripts and project scripts calling setup.sh.
+
+### sprite exec parses flags aggressively
+
+Any flag-like argument (e.g. `-p` in `mkdir -p`) gets parsed as a `sprite exec` flag, not passed to the command. Wrap commands in `bash -c '...'`:
+- Wrong: `sprite exec -s NAME mkdir -p /foo`
+- Right: `sprite exec -s NAME bash -c 'mkdir -p /foo'`
+
+### sprite exec -file requires a command
+
+`sprite exec -file "local:remote"` alone fails. You must provide a command to run, even if it's just `true`:
+- `sprite exec -s NAME -file "local:remote" true`
+
+### There is no sprite cp
+
+File transfer uses `sprite exec -file`, not a dedicated copy command. `sprite cp` does not exist.
+
+### Heredocs on the sprite
+
+Use `<<'EOF'` (quoted) to prevent local variable expansion. Use unquoted `<<EOF` only when you intentionally want local expansion. Be careful with nested heredocs (e.g. the Docker daemon.json inside the install heredoc) — use different delimiters.
+
+### gh auth tokens live in macOS keychain
+
+On macOS, `~/.config/gh/hosts.yml` does not contain the token — it's stored in the system keychain. Use `gh auth token` to extract it. This is why we pipe `gh auth token | gh auth login --with-token` rather than copying a config file.
+
+### gh token needs read:packages for ghcr.io
+
+The default gh token scopes don't include `read:packages`. Users must run `gh auth refresh -s read:packages` locally before the Docker ghcr.io login will work. If pulls return 403, this is likely the cause.
+
+### Docker on sprites requires specific setup
+
+Docker must be installed as `docker.io` from apt, not `docker-ce` from Docker's official repo. The `docker-ce` package tries to use cgroup features that aren't available. See `/.sprite/docs/docker.md` on any sprite for the official guide.
+
+The Docker Compose plugin is not included with `docker.io`. It's installed separately by downloading the binary from GitHub releases into `/usr/local/lib/docker/cli-plugins/`.
+
+### Docker containers cannot have resource limits
+
+Sprites only expose `cpuset cpu pids` cgroup controllers. Memory and IO controllers are unavailable and cannot be enabled. Any `deploy.resources` section in docker-compose.yml with memory/cpu limits will cause container creation to fail with cgroup errors. Remove these limits for sprite compatibility.
+
+### nohup inside heredocs still hangs
+
+Running `nohup sudo dockerd &` inside a `sprite exec bash <<'EOF'` heredoc keeps the session open because output streams are still attached. Use `sprite-env services create` instead of nohup for daemons.
+
+### SSH keys should use the default name
+
+Upload keys as `~/.ssh/id_ed25519` on the sprite (not the original filename) so SSH uses them automatically without needing a config entry.
+
+### Idempotency pattern
+
+Every install script should start with a guard that checks if the software is already present and exits 0 if so. Use specific checks:
+- `command -v <binary>` for CLI tools
+- `npm list -g <package>` for npm global packages
+- `gh auth status` for gh authentication
+- `test -f <path>` for config files
+
 ## File structure
 
 ```
