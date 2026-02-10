@@ -26,6 +26,11 @@ install_gh: true
 # Local SSH private key to upload (public key derived by appending .pub)
 gh_ssh_key: $HOME/.ssh/id_ed25519_dissonantP
 
+# ── Repo ───────────────────────────────────────────────
+# Clone a GitHub repo after setup (e.g. owner/repo)
+# Can be overridden with --repo CLI arg
+repo:
+
 # ── Playwright MCP ─────────────────────────────────────
 # Install Playwright MCP server and register with Codex
 install_playwright_mcp: true

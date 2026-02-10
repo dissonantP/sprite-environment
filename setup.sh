@@ -128,6 +128,7 @@ else
 fi
 
 # CLONE REPO
+REPO="${REPO:-$(cfg repo "")}"
 if [ -n "$REPO" ]; then
   echo "==> Cloning repo: $REPO"
   sprite exec -s $SPRITE_NAME gh repo clone "$REPO"
