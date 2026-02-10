@@ -5,6 +5,7 @@ fi
 
 GH_TOKEN=$(gh auth token)
 sprite exec -s $SPRITE_NAME bash -c "echo \"$GH_TOKEN\" | gh auth login --with-token"
+sprite exec -s $SPRITE_NAME bash -c 'gh config set git_protocol ssh --host github.com'
 
 # Upload SSH keys for git operations
 SSH_KEY="${GH_SSH_KEY:-$HOME/.ssh/id_ed25519_dissonantP}"
