@@ -22,4 +22,5 @@ sudo apt update
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 nohup sudo dockerd > /var/log/dockerd.log 2>&1 &
 sleep 2
+gh auth token | docker login ghcr.io -u dissonantP --password-stdin
 EOF

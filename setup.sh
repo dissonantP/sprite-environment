@@ -65,6 +65,10 @@ fi
 # Run scripts
 ################################################################
 
+# INSTALL GH CLI (first, so docker can use gh token for ghcr.io)
+echo "==> Installing GitHub CLI"
+run_script "scripts/install_gh.sh"
+
 # INSTALL DOCKER
 if [ -z "$SKIP_DOCKER" ]; then
   echo "==> Installing Docker"
@@ -80,10 +84,6 @@ run_script "scripts/install_codex.sh"
 # INSTALL MCPS
 echo "==> Installing Playwright MCP"
 run_script "scripts/install_playwright_mcp.sh"
-
-# INSTALL GH CLI
-echo "==> Installing GitHub CLI"
-run_script "scripts/install_gh.sh"
 
 # CLONE REPO
 if [ -n "$REPO" ]; then
