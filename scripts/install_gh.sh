@@ -7,7 +7,7 @@ GH_TOKEN=$(gh auth token)
 sprite exec -s $SPRITE_NAME bash -c "echo \"$GH_TOKEN\" | gh auth login --with-token"
 
 # Upload SSH keys for git operations
-SSH_KEY="$HOME/.ssh/id_ed25519_dissonantP"
+SSH_KEY="${GH_SSH_KEY:-$HOME/.ssh/id_ed25519_dissonantP}"
 if [ -f "$SSH_KEY" ]; then
   sprite exec -s $SPRITE_NAME bash -c 'mkdir -p /home/sprite/.ssh'
   sprite exec -s $SPRITE_NAME -file "$SSH_KEY:/home/sprite/.ssh/id_ed25519" true

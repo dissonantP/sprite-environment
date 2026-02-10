@@ -8,4 +8,5 @@ mkdir -p ~/.codex
 npm i -g @openai/codex
 EOF
 
-sprite exec -s $SPRITE_NAME -file "$HOME/.codex/auth.json:/home/sprite/.codex/auth.json" true
+CODEX_AUTH="${CODEX_AUTH_FILE:-$HOME/.codex/auth.json}"
+sprite exec -s $SPRITE_NAME -file "$CODEX_AUTH:/home/sprite/.codex/auth.json" true

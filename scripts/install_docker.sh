@@ -24,7 +24,14 @@ sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 # Start Docker as a sprite service
 sprite-env services create docker --cmd /usr/bin/sudo --args /usr/bin/dockerd
 sleep 2
-
-# Login to ghcr.io
-gh auth token | sudo docker login ghcr.io -u dissonantP --password-stdin
 EOF
+
+# Login to ghcr.io (uses local gh token)
+GHCR_LOGIN="${DOCKER_GHCR_LOGIN:-true}"
+GHCR_USER="${DOCKER_GHCR_USER:-dissonantP}"
+if [ "$GHCR_LOGIN" = "true" ]; then
+  GH_TOKEN=$(gh auth token 2>/dev/null || true)
+  if [ -n "$GH_TOKEN" ]; then
+    sprite exec -s $SPRITE_NAME bash -c "echo '$GH_TOKEN' | sudo docker login ghcr.io -u $GHCR_USER --password-stdin"
+  fi
+fi

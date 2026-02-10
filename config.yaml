@@ -1,0 +1,31 @@
+# Sprite Environment Configuration
+# These defaults can be overridden per-project or per-run.
+
+# ── Codex ──────────────────────────────────────────────
+# Install OpenAI Codex CLI and copy auth config
+install_codex: true
+
+# Local path to Codex auth file (copied into the sprite)
+codex_auth_file: $HOME/.codex/auth.json
+
+# ── Docker ─────────────────────────────────────────────
+# Install Docker Engine and Compose plugin
+install_docker: true
+
+# Log into ghcr.io using gh auth token (requires install_gh: true)
+docker_ghcr_login: true
+
+# GitHub username for ghcr.io login
+docker_ghcr_user: dissonantP
+
+# ── GitHub CLI ─────────────────────────────────────────
+# Authenticate gh on the sprite via token injection
+# Requires being logged in with gh locally first (gh auth login)
+install_gh: true
+
+# Local SSH private key to upload (public key derived by appending .pub)
+gh_ssh_key: $HOME/.ssh/id_ed25519_dissonantP
+
+# ── Playwright MCP ─────────────────────────────────────
+# Install Playwright MCP server and register with Codex
+install_playwright_mcp: true

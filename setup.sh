@@ -8,7 +8,7 @@ set -e
 while [[ $# -gt 0 ]]; do
   case $1 in
     --name) export SPRITE_NAME="$2"; shift 2 ;;
-    --skip-docker) SKIP_DOCKER=1; shift ;;
+    --config) CONFIG_FILE="$2"; shift 2 ;;
     --repo) REPO="$2"; shift 2 ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
@@ -19,7 +19,7 @@ done
 ################################################################
 
 if [ -z "$SPRITE_NAME" ]; then
-  echo "Usage: setup.sh --name <sprite-name>"
+  echo "Usage: setup.sh --name <sprite-name> [--config path/to/config.yaml] [--repo owner/repo]"
   exit 1
 fi
 
@@ -31,6 +31,35 @@ if [[ ! "$SPRITE_NAME" =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]]; then
   echo "Error: sprite name must be lowercase alphanumeric with hyphens (e.g. my-sprite)"
   exit 1
 fi
+
+################################################################
+# Load config
+################################################################
+
+DIR="$(cd "$(dirname "$0")" 2>/dev/null && pwd)"
+BASE_URL="https://dissonantp.github.io/sprite-environment"
+
+# Parse a value from config YAML (flat key: value only)
+cfg() {
+  local key="$1" default="$2" file="${CONFIG_FILE:-}"
+  # Try local config.yaml if no --config provided
+  if [ -z "$file" ] && [ -f "$DIR/config.yaml" ]; then
+    file="$DIR/config.yaml"
+  fi
+  # Try remote config.yaml
+  if [ -z "$file" ]; then
+    if [ -z "$_REMOTE_CONFIG" ]; then
+      _REMOTE_CONFIG=$(mktemp)
+      curl -sL "$BASE_URL/config.yaml" -o "$_REMOTE_CONFIG"
+    fi
+    file="$_REMOTE_CONFIG"
+  fi
+  local val
+  val=$(grep "^${key}:" "$file" 2>/dev/null | head -1 | sed 's/^[^:]*: *//' | sed 's/ *$//')
+  # Expand $HOME in values
+  val=$(eval echo "$val")
+  if [ -z "$val" ]; then echo "$default"; else echo "$val"; fi
+}
 
 ################################################################
 # Create Sprite (skip if already exists)
@@ -46,9 +75,6 @@ fi
 ################################################################
 # Script runner (local or remote)
 ################################################################
-
-DIR="$(cd "$(dirname "$0")" 2>/dev/null && pwd)"
-BASE_URL="https://dissonantp.github.io/sprite-environment"
 
 if [ -f "$DIR/scripts/install_docker.sh" ]; then
   run_script() { SPRITE_NAME=$SPRITE_NAME bash "$DIR/$1"; }
@@ -66,24 +92,40 @@ fi
 ################################################################
 
 # INSTALL GH CLI (first, so docker can use gh token for ghcr.io)
-echo "==> Installing GitHub CLI"
-run_script "scripts/install_gh.sh"
+if [ "$(cfg install_gh true)" = "true" ]; then
+  echo "==> Installing GitHub CLI"
+  export GH_SSH_KEY=$(cfg gh_ssh_key "$HOME/.ssh/id_ed25519_dissonantP")
+  run_script "scripts/install_gh.sh"
+else
+  echo "==> Skipping GitHub CLI"
+fi
 
 # INSTALL DOCKER
-if [ -z "$SKIP_DOCKER" ]; then
+if [ "$(cfg install_docker true)" = "true" ]; then
   echo "==> Installing Docker"
+  export DOCKER_GHCR_LOGIN=$(cfg docker_ghcr_login true)
+  export DOCKER_GHCR_USER=$(cfg docker_ghcr_user dissonantP)
   run_script "scripts/install_docker.sh"
 else
-  echo "==> Skipping Docker (--skip-docker)"
+  echo "==> Skipping Docker"
 fi
 
 # INSTALL CODEX
-echo "==> Installing Codex"
-run_script "scripts/install_codex.sh"
+if [ "$(cfg install_codex true)" = "true" ]; then
+  echo "==> Installing Codex"
+  export CODEX_AUTH_FILE=$(cfg codex_auth_file "$HOME/.codex/auth.json")
+  run_script "scripts/install_codex.sh"
+else
+  echo "==> Skipping Codex"
+fi
 
-# INSTALL MCPS
-echo "==> Installing Playwright MCP"
-run_script "scripts/install_playwright_mcp.sh"
+# INSTALL PLAYWRIGHT MCP
+if [ "$(cfg install_playwright_mcp true)" = "true" ]; then
+  echo "==> Installing Playwright MCP"
+  run_script "scripts/install_playwright_mcp.sh"
+else
+  echo "==> Skipping Playwright MCP"
+fi
 
 # CLONE REPO
 if [ -n "$REPO" ]; then
