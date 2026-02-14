@@ -21,7 +21,7 @@ Config resolution order:
 2. `config.yaml` next to setup.sh (local runs)
 3. Remote `config.yaml` from GitHub Pages (remote runs)
 
-Config values are exported as env vars to sub-scripts: `CODEX_AUTH_FILE`, `GH_SSH_KEY`, `DOCKER_GHCR_LOGIN`, `DOCKER_GHCR_USER`. Sub-scripts use these with fallback defaults so they work standalone too.
+Config values are exported as env vars to sub-scripts: `CODEX_AUTH_FILE`, `GH_SSH_KEY`, `DOCKER_GHCR_LOGIN`, `DOCKER_GHCR_USER`, `INSTALL_OPENSSH`. Sub-scripts use these with fallback defaults so they work standalone too.
 
 Every config key can be overridden via CLI: `--key value`. `--name` is an alias for `--sprite_name`, `--repo` is an alias for `--repo`. All other keys use their exact name (e.g. `--install_docker false`). CLI args are written to a temp overrides file and checked first by `cfg()`.
 
@@ -33,8 +33,10 @@ Config keys:
 | `install_gh` | bool | `true` | Authenticate gh CLI and upload SSH keys. Requires local `gh auth login` first. |
 | `gh_ssh_key` | path | `$HOME/.ssh/id_ed25519_dissonantP` | Private key to upload (`.pub` appended for public). Uploaded as `id_ed25519` on sprite. |
 | `install_docker` | bool | `true` | Install Docker Engine, Compose plugin, overlay2 storage. |
+| `install_openssh` | bool | `false` | Install OpenSSH server and register `sshd` as a sprite service. |
 | `docker_ghcr_login` | bool | `true` | Login to ghcr.io using gh token. Requires `install_gh: true`. |
 | `docker_ghcr_user` | string | `dissonantP` | GitHub username for ghcr.io auth. |
+| `install_yarn` | bool | `true` | Install Yarn globally via npm. |
 | `install_codex` | bool | `true` | Install Codex CLI globally via npm. |
 | `codex_auth_file` | path | `$HOME/.codex/auth.json` | Local auth file to copy into sprite. |
 | `repo` | string | (empty) | GitHub repo to clone (e.g. `owner/repo`). |
@@ -43,11 +45,13 @@ Config keys:
 ## Script execution order
 
 1. **install_gh.sh** — Runs first because Docker needs the gh token for ghcr.io login.
-2. **install_docker.sh** — Must use `docker.io` from apt (not `docker-ce`). Uses overlay2 storage driver. Daemon started via `sprite-env services create` (not systemd/nohup). All docker commands require `sudo`.
-3. **install_codex.sh** — Installs via npm, copies auth file using `sprite exec -file`.
-4. **install_playwright_mcp.sh** — Installs via npm, installs Chrome, registers with `codex mcp add`.
-5. **install_cheatsheet.sh** — Writes ~/CHEATSHEET.md on the sprite.
-6. **validate.sh** — Checks all components are working.
+2. **install_openssh.sh** — Installs `openssh-server` and creates `sshd` service via `sprite-env services create`.
+3. **install_docker.sh** — Must use `docker.io` from apt (not `docker-ce`). Uses overlay2 storage driver. Daemon started via `sprite-env services create` (not systemd/nohup). All docker commands require `sudo`.
+4. **install_yarn.sh** — Installs Yarn globally via npm.
+5. **install_codex.sh** — Installs via npm, copies auth file using `sprite exec -file`.
+6. **install_playwright_mcp.sh** — Installs via npm, installs Chrome, registers with `codex mcp add`.
+7. **install_cheatsheet.sh** — Writes ~/CHEATSHEET.md on the sprite.
+8. **validate.sh** — Checks all components are working.
 
 Each script is idempotent with a guard clause at the top (checks if already installed, exits 0 if so).
 
@@ -130,7 +134,9 @@ README.md                     # Human-facing docs
 AGENTS.md                     # This file (LLM developer docs)
 scripts/
   install_gh.sh               # gh auth + SSH key upload
+  install_openssh.sh          # openssh-server install + sshd sprite service
   install_docker.sh           # docker.io + compose plugin + overlay2 + sprite service + ghcr.io login
+  install_yarn.sh             # yarn package manager via npm
   install_codex.sh            # codex CLI + auth file copy
   install_playwright_mcp.sh   # playwright MCP + chrome + codex registration
   install_cheatsheet.sh       # ~/CHEATSHEET.md on sprite

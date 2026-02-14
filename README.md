@@ -9,8 +9,10 @@ Automated provisioning for [Sprites](https://sprites.dev) dev environments. Inst
 - Installs Docker with the Sprite-compatible setup (see `/.sprite/docs/docker.md` on the Sprite)
 - Installs Docker Compose
 - Logs into Docker using `gh` credentials
+- Installs Yarn globally via npm
 - Installs Playwright MCP to Codex
 - Add a ~/CHEATSHEET.md with a couple useful commands
+- Optionally installs OpenSSH server and registers `sshd` with sprite services
 
 ## Quick start
 
@@ -36,7 +38,7 @@ bash /tmp/setup.sh --name my-sprite --repo owner/repo
 
 ## Configuration
 
-Edit `config.yaml` to toggle components and set paths. See comments in the file. All keys can also be set via CLI args.
+Edit `config.yaml` to toggle components and set paths. See comments in the file. All keys can also be set via CLI args. OpenSSH is controlled by `install_openssh` (default `false`).
 
 ## Assumptions
 

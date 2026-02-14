@@ -17,6 +17,14 @@ codex_auth_file: $HOME/.codex/auth.json
 # Install Docker Engine and Compose plugin
 install_docker: true
 
+# ── OpenSSH ────────────────────────────────────────────
+# Install OpenSSH server and create sshd sprite service
+install_openssh: false
+
+# ── Yarn ────────────────────────────────────────────────
+# Install Yarn package manager globally
+install_yarn: true
+
 # Log into ghcr.io using gh auth token (requires install_gh: true)
 docker_ghcr_login: true
 

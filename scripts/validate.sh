@@ -20,9 +20,15 @@ check "Codex installed" "command -v codex"
 check "Codex auth configured" "test -f ~/.codex/auth.json"
 check "Codex functional" 'codex --yolo exec "This is a test. Just output SUCCESS with no other output." 2>&1 | grep -q SUCCESS'
 check "Codex MCP includes Playwright" "codex mcp list 2>&1 | grep -qi playwright"
+check "Yarn installed" "command -v yarn"
 check "Playwright MCP installed" "npm list -g @playwright/mcp"
 check "gh CLI authenticated" "gh auth status"
 check "SSH key present" "test -f ~/.ssh/id_ed25519"
+
+if [ "${INSTALL_OPENSSH:-false}" = "true" ]; then
+  check "OpenSSH installed" "command -v sshd"
+  check "sshd service configured" "sprite-env services list 2>/dev/null | grep -q sshd"
+fi
 
 echo ""
 echo "  $PASS passed, $FAIL failed"

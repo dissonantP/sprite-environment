@@ -105,6 +105,15 @@ else
   echo "==> Skipping GitHub CLI"
 fi
 
+# INSTALL OPENSSH
+export INSTALL_OPENSSH=$(cfg install_openssh false)
+if [ "$INSTALL_OPENSSH" = "true" ]; then
+  echo "==> Installing OpenSSH"
+  run_script "scripts/install_openssh.sh"
+else
+  echo "==> Skipping OpenSSH"
+fi
+
 # INSTALL DOCKER
 if [ "$(cfg install_docker true)" = "true" ]; then
   echo "==> Installing Docker"
@@ -113,6 +122,14 @@ if [ "$(cfg install_docker true)" = "true" ]; then
   run_script "scripts/install_docker.sh"
 else
   echo "==> Skipping Docker"
+fi
+
+# INSTALL YARN
+if [ "$(cfg install_yarn true)" = "true" ]; then
+  echo "==> Installing Yarn"
+  run_script "scripts/install_yarn.sh"
+else
+  echo "==> Skipping Yarn"
 fi
 
 # INSTALL CODEX
