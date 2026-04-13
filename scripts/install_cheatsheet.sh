@@ -1,4 +1,4 @@
-sprite exec -s $SPRITE_NAME bash -c 'cat > /home/sprite/CHEATSHEET.md <<EOF
+sprite_exec bash -c 'cat > /home/sprite/CHEATSHEET.md <<EOF
 # Sprite Cheatsheet
 
 ## Docker Compose

@@ -1,4 +1,4 @@
-sprite exec -s $SPRITE_NAME bash <<'EOF'
+sprite_exec bash <<'EOF'
 PASS=0
 FAIL=0
 

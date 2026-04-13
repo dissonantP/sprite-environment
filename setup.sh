@@ -67,10 +67,26 @@ if [[ ! "$SPRITE_NAME" =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]]; then
 fi
 
 ################################################################
+# sprite_exec helper — runs a command on the sprite.
+# `--` separates sprite flags from the remote command so flags
+# like `-c` aren't swallowed by `sprite exec`.
+################################################################
+
+sprite_exec() {
+  sprite exec -s "$SPRITE_NAME" -- "$@"
+}
+export -f sprite_exec
+
+sprite_copy() {
+  sprite exec -s "$SPRITE_NAME" -file "$1" -- true
+}
+export -f sprite_copy
+
+################################################################
 # Create Sprite (skip if already exists)
 ################################################################
 
-if sprite exec -s $SPRITE_NAME true > /dev/null 2>&1; then
+if sprite_exec true > /dev/null 2>&1; then
   echo "==> Sprite '$SPRITE_NAME' already exists, updating"
 else
   echo "==> Creating sprite: $SPRITE_NAME"
@@ -153,7 +169,7 @@ fi
 REPO=$(cfg repo "")
 if [ -n "$REPO" ]; then
   echo "==> Cloning repo: $REPO"
-  sprite exec -s $SPRITE_NAME gh repo clone "$REPO"
+  sprite_exec gh repo clone "$REPO"
 fi
 
 # CHEATSHEET
