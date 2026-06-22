@@ -41,7 +41,7 @@ docker_ghcr_user: dissonantP
 install_gh: true
 
 # Local SSH private key to upload (public key derived by appending .pub)
-gh_ssh_key: $HOME/.ssh/id_ed25519_dissonantP
+gh_ssh_key: $HOME/.ssh/id_ed25519
 
 # ── Repo ───────────────────────────────────────────────
 # Clone a GitHub repo after setup (e.g. owner/repo)

@@ -1,9 +1,9 @@
-if sprite exec -s $SPRITE_NAME bash -c 'command -v docker' > /dev/null 2>&1; then
+if sprite exec -s "$SPRITE_NAME" -- bash -c 'command -v docker' > /dev/null 2>&1; then
   echo "  Docker already installed, skipping"
   exit 0
 fi
 
-sprite exec -s $SPRITE_NAME bash <<'EOF'
+sprite exec -s "$SPRITE_NAME" -- bash <<'EOF'
 sudo apt-get update
 sudo apt-get install -y docker.io
 
@@ -32,6 +32,6 @@ GHCR_USER="${DOCKER_GHCR_USER:-dissonantP}"
 if [ "$GHCR_LOGIN" = "true" ]; then
   GH_TOKEN=$(gh auth token 2>/dev/null || true)
   if [ -n "$GH_TOKEN" ]; then
-    sprite exec -s $SPRITE_NAME bash -c "echo '$GH_TOKEN' | sudo docker login ghcr.io -u $GHCR_USER --password-stdin"
+    sprite exec -s "$SPRITE_NAME" -- bash -c "echo '$GH_TOKEN' | sudo docker login ghcr.io -u $GHCR_USER --password-stdin"
   fi
 fi

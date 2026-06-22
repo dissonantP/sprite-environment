@@ -31,7 +31,7 @@ Config keys:
 |-----|------|---------|-------------|
 | `sprite_name` | string | (required) | Name of the sprite. Set via `--name` or config. |
 | `install_gh` | bool | `true` | Authenticate gh CLI and upload SSH keys. Requires local `gh auth login` first. |
-| `gh_ssh_key` | path | `$HOME/.ssh/id_ed25519_dissonantP` | Private key to upload (`.pub` appended for public). Uploaded as `id_ed25519` on sprite. |
+| `gh_ssh_key` | path | `$HOME/.ssh/id_ed25519` | Private key to upload (`.pub` appended for public). Uploaded as `id_ed25519` on sprite. |
 | `install_docker` | bool | `false` | Install Docker Engine, Compose plugin, overlay2 storage. |
 | `install_openssh` | bool | `false` | Install OpenSSH server and register `sshd` as a sprite service. |
 | `install_cheatsheet` | bool | `false` | Install `~/CHEATSHEET.md`. |
@@ -49,7 +49,7 @@ Config keys:
 2. **install_openssh.sh** — Installs `openssh-server` and creates `sshd` service via `sprite-env services create`.
 3. **install_docker.sh** — Must use `docker.io` from apt (not `docker-ce`). Uses overlay2 storage driver. Daemon started via `sprite-env services create` (not systemd/nohup). All docker commands require `sudo`.
 4. **install_yarn.sh** — Installs Yarn globally via npm.
-5. **install_codex.sh** — Installs via npm, copies auth file using `sprite exec -file`.
+5. **install_codex.sh** — Installs via npm, copies auth file using `sprite exec --file`.
 6. **install_playwright_mcp.sh** — Installs via npm, installs Chrome, registers with `codex mcp add`.
 7. **install_cheatsheet.sh** — Optionally writes ~/CHEATSHEET.md on the sprite.
 8. **validate.sh** — Checks all components are working.
@@ -61,8 +61,8 @@ Validation only checks components enabled in the resolved provisioning plan. Doc
 
 - **No systemd.** Start daemons via `sprite-env services create`.
 - **Cgroups v2 restricted.** Only `cpuset cpu pids` controllers available. Memory and IO controllers are not available. Docker containers cannot have resource limits.
-- **`sprite exec` flag parsing.** Commands with flags (like `mkdir -p`) get their flags parsed as sprite exec flags. Always wrap in `bash -c '...'`.
-- **`sprite exec -file`** uploads local files: `sprite exec -s NAME -file "local:remote" true`. The `true` at the end is a required command arg.
+- **`sprite exec` command separator.** The current CLI requires `--` before the remote command. Use `sprite exec -s NAME -- bash -c '...'`.
+- **`sprite exec --file`** uploads local files: `sprite exec -s NAME --file "local:remote" -- true`. The `true` at the end is a required command arg.
 - **`sudo` required for docker.** All docker/docker compose commands need `sudo` on sprites.
 - **gh is pre-installed** on sprites. No apt install needed, just token injection.
 
@@ -74,20 +74,22 @@ These are hard-won lessons from building these scripts. Read before writing new 
 
 `sprite exec` reads from stdin. If a script is piped via `curl | bash`, the first `sprite exec` call consumes the rest of the pipe and the script stops executing silently. **Always download to a temp file first**, then run with `bash "$tmp"`. This applies to both setup.sh calling sub-scripts and project scripts calling setup.sh.
 
-### sprite exec parses flags aggressively
+Commands launched inside a remote heredoc can consume the remaining validation script too. Redirect stdin from `/dev/null` for commands such as `codex exec` that may read stdin.
 
-Any flag-like argument (e.g. `-p` in `mkdir -p`) gets parsed as a `sprite exec` flag, not passed to the command. Wrap commands in `bash -c '...'`:
-- Wrong: `sprite exec -s NAME mkdir -p /foo`
-- Right: `sprite exec -s NAME bash -c 'mkdir -p /foo'`
+### sprite exec requires a command separator
 
-### sprite exec -file requires a command
+The current CLI requires `--` before the remote command. Keep complex commands wrapped in `bash -c`:
+- Wrong: `sprite exec -s NAME bash -c 'mkdir -p /foo'`
+- Right: `sprite exec -s NAME -- bash -c 'mkdir -p /foo'`
 
-`sprite exec -file "local:remote"` alone fails. You must provide a command to run, even if it's just `true`:
-- `sprite exec -s NAME -file "local:remote" true`
+### sprite exec --file requires a command
+
+`sprite exec --file "local:remote"` alone fails. You must provide a command to run, even if it's just `true`:
+- `sprite exec -s NAME --file "local:remote" -- true`
 
 ### There is no sprite cp
 
-File transfer uses `sprite exec -file`, not a dedicated copy command. `sprite cp` does not exist.
+File transfer uses `sprite exec --file`, not a dedicated copy command. `sprite cp` does not exist.
 
 ### Heredocs on the sprite
 
@@ -113,7 +115,7 @@ Sprites only expose `cpuset cpu pids` cgroup controllers. Memory and IO controll
 
 ### nohup inside heredocs still hangs
 
-Running `nohup sudo dockerd &` inside a `sprite exec bash <<'EOF'` heredoc keeps the session open because output streams are still attached. Use `sprite-env services create` instead of nohup for daemons.
+Running `nohup sudo dockerd &` inside a `sprite exec -- bash <<'EOF'` heredoc keeps the session open because output streams are still attached. Use `sprite-env services create` instead of nohup for daemons.
 
 ### SSH keys should use the default name
 

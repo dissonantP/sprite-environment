@@ -1,4 +1,4 @@
-sprite exec -s "$SPRITE_NAME" env \
+sprite exec -s "$SPRITE_NAME" -- env \
   INSTALL_GH="${INSTALL_GH:-true}" \
   INSTALL_OPENSSH="${INSTALL_OPENSSH:-false}" \
   INSTALL_DOCKER="${INSTALL_DOCKER:-false}" \
@@ -33,7 +33,7 @@ fi
 if [ "$INSTALL_CODEX" = "true" ]; then
   check "Codex installed" "command -v codex"
   check "Codex auth configured" "test -f ~/.codex/auth.json"
-  check "Codex functional" 'codex --yolo exec "This is a test. Just output SUCCESS with no other output." 2>&1 | grep -q SUCCESS'
+  check "Codex functional" 'codex --yolo exec "This is a test. Just output SUCCESS with no other output." </dev/null 2>&1 | grep -q SUCCESS'
 fi
 
 if [ "$INSTALL_PLAYWRIGHT_MCP" = "true" ]; then

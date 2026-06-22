@@ -88,7 +88,7 @@ export INSTALL_PLAYWRIGHT_MCP=$(cfg install_playwright_mcp true)
 export INSTALL_CHEATSHEET=$(cfg install_cheatsheet false)
 export DOCKER_GHCR_LOGIN=$(cfg docker_ghcr_login true)
 export DOCKER_GHCR_USER=$(cfg docker_ghcr_user dissonantP)
-export GH_SSH_KEY=$(cfg gh_ssh_key "$HOME/.ssh/id_ed25519_dissonantP")
+export GH_SSH_KEY=$(cfg gh_ssh_key "$HOME/.ssh/id_ed25519")
 export CODEX_AUTH_FILE=$(cfg codex_auth_file "$HOME/.codex/auth.json")
 REPO=$(cfg repo "")
 DRY_RUN=$(cfg dry_run false)
@@ -121,11 +121,11 @@ fi
 # Create Sprite (skip if already exists)
 ################################################################
 
-if sprite exec -s "$SPRITE_NAME" true > /dev/null 2>&1; then
+if sprite exec -s "$SPRITE_NAME" -- true > /dev/null 2>&1; then
   echo "==> Sprite '$SPRITE_NAME' already exists, updating"
 else
   echo "==> Creating sprite: $SPRITE_NAME"
-  sprite create -skip-console "$SPRITE_NAME"
+  sprite create --skip-console "$SPRITE_NAME"
 fi
 
 ################################################################
@@ -198,7 +198,7 @@ fi
 # CLONE REPO
 if [ -n "$REPO" ]; then
   echo "==> Cloning repo: $REPO"
-  sprite exec -s "$SPRITE_NAME" gh repo clone "$REPO"
+  sprite exec -s "$SPRITE_NAME" -- gh repo clone "$REPO"
 fi
 
 # CHEATSHEET
