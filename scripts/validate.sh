@@ -33,6 +33,7 @@ fi
 if [ "$INSTALL_CODEX" = "true" ]; then
   check "Codex installed" "command -v codex"
   check "Codex auth configured" "test -f ~/.codex/auth.json"
+  check "Codex model configured" "grep -q '^model = ' ~/.codex/config.toml"
   check "Codex functional" 'codex --yolo exec "This is a test. Just output SUCCESS with no other output." </dev/null 2>&1 | grep -q SUCCESS'
 fi
 

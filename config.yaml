@@ -13,6 +13,10 @@ install_codex: true
 # Local path to Codex auth file (copied into the sprite)
 codex_auth_file: $HOME/.codex/auth.json
 
+# Codex model to configure. When blank, inherit the top-level model from the
+# local ~/.codex/config.toml.
+codex_model:
+
 # ── Docker ─────────────────────────────────────────────
 # Install Docker Engine and Compose plugin
 install_docker: false

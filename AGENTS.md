@@ -21,7 +21,7 @@ Config resolution order:
 2. `config.yaml` next to setup.sh (local runs)
 3. Remote `config.yaml` from GitHub Pages (remote runs)
 
-Config values are exported as env vars to sub-scripts: `CODEX_AUTH_FILE`, `GH_SSH_KEY`, `DOCKER_GHCR_LOGIN`, `DOCKER_GHCR_USER`, `INSTALL_OPENSSH`. Sub-scripts use these with fallback defaults so they work standalone too.
+Config values are exported as env vars to sub-scripts: `CODEX_AUTH_FILE`, `CODEX_MODEL`, `GH_SSH_KEY`, `DOCKER_GHCR_LOGIN`, `DOCKER_GHCR_USER`, `INSTALL_OPENSSH`. Sub-scripts use these with fallback defaults so they work standalone too.
 
 Every config key can be overridden via CLI: `--key value`. `--name` is an alias for `--sprite_name`, `--repo` is an alias for `--repo`. All other keys use their exact name (e.g. `--install_docker false`). CLI args are written to a temp overrides file and checked first by `cfg()`.
 
@@ -40,6 +40,7 @@ Config keys:
 | `install_yarn` | bool | `true` | Install Yarn globally via npm. |
 | `install_codex` | bool | `true` | Install Codex CLI globally via npm. |
 | `codex_auth_file` | path | `$HOME/.codex/auth.json` | Local auth file to copy into sprite. |
+| `codex_model` | string | local top-level Codex model | Model written to the Sprite's `~/.codex/config.toml`. |
 | `repo` | string | (empty) | GitHub repo to clone (e.g. `owner/repo`). |
 | `install_playwright_mcp` | bool | `true` | Install Playwright MCP and register with Codex. |
 

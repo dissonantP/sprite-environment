@@ -90,11 +90,22 @@ export DOCKER_GHCR_LOGIN=$(cfg docker_ghcr_login true)
 export DOCKER_GHCR_USER=$(cfg docker_ghcr_user dissonantP)
 export GH_SSH_KEY=$(cfg gh_ssh_key "$HOME/.ssh/id_ed25519")
 export CODEX_AUTH_FILE=$(cfg codex_auth_file "$HOME/.codex/auth.json")
+export CODEX_MODEL=$(cfg codex_model "")
 REPO=$(cfg repo "")
 DRY_RUN=$(cfg dry_run false)
 
 if [ "$INSTALL_PLAYWRIGHT_MCP" = "true" ] && [ "$INSTALL_CODEX" != "true" ]; then
   echo "Error: install_playwright_mcp requires install_codex"
+  exit 1
+fi
+
+if [ "$INSTALL_CODEX" = "true" ] && [ -z "$CODEX_MODEL" ] && [ -f "$HOME/.codex/config.toml" ]; then
+  CODEX_MODEL=$(sed -n 's/^model = "\([^"]*\)".*/\1/p' "$HOME/.codex/config.toml" | head -1)
+  export CODEX_MODEL
+fi
+
+if [ "$INSTALL_CODEX" = "true" ] && [[ ! "$CODEX_MODEL" =~ ^[A-Za-z0-9._-]+$ ]]; then
+  echo "Error: codex_model must be configured or available in ~/.codex/config.toml"
   exit 1
 fi
 
@@ -104,6 +115,9 @@ print_plan() {
   echo "  Repository: ${REPO:-none}"
   echo "  GitHub CLI auth: $INSTALL_GH"
   echo "  Codex: $INSTALL_CODEX"
+  if [ "$INSTALL_CODEX" = "true" ]; then
+    echo "  Codex model: $CODEX_MODEL"
+  fi
   echo "  Yarn: $INSTALL_YARN"
   echo "  Playwright MCP: $INSTALL_PLAYWRIGHT_MCP"
   echo "  Docker: $INSTALL_DOCKER"
