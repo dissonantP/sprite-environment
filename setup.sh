@@ -7,11 +7,20 @@ set -e
 
 _CLI_OVERRIDES=$(mktemp)
 
+cleanup() {
+  rm -f "$_CLI_OVERRIDES"
+  if [ -n "${_REMOTE_CONFIG:-}" ]; then
+    rm -f "$_REMOTE_CONFIG"
+  fi
+}
+trap cleanup EXIT
+
 while [[ $# -gt 0 ]]; do
   case $1 in
     --config) CONFIG_FILE="$2"; shift 2 ;;
     --name) echo "sprite_name: $2" >> "$_CLI_OVERRIDES"; shift 2 ;;
     --repo) echo "repo: $2" >> "$_CLI_OVERRIDES"; shift 2 ;;
+    --dry-run) echo "dry_run: true" >> "$_CLI_OVERRIDES"; shift ;;
     --*) echo "${1#--}: $2" >> "$_CLI_OVERRIDES"; shift 2 ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
@@ -67,14 +76,56 @@ if [[ ! "$SPRITE_NAME" =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]]; then
 fi
 
 ################################################################
+# Resolve component plan
+################################################################
+
+export INSTALL_GH=$(cfg install_gh true)
+export INSTALL_OPENSSH=$(cfg install_openssh false)
+export INSTALL_DOCKER=$(cfg install_docker false)
+export INSTALL_YARN=$(cfg install_yarn true)
+export INSTALL_CODEX=$(cfg install_codex true)
+export INSTALL_PLAYWRIGHT_MCP=$(cfg install_playwright_mcp true)
+export INSTALL_CHEATSHEET=$(cfg install_cheatsheet false)
+export DOCKER_GHCR_LOGIN=$(cfg docker_ghcr_login true)
+export DOCKER_GHCR_USER=$(cfg docker_ghcr_user dissonantP)
+export GH_SSH_KEY=$(cfg gh_ssh_key "$HOME/.ssh/id_ed25519_dissonantP")
+export CODEX_AUTH_FILE=$(cfg codex_auth_file "$HOME/.codex/auth.json")
+REPO=$(cfg repo "")
+DRY_RUN=$(cfg dry_run false)
+
+if [ "$INSTALL_PLAYWRIGHT_MCP" = "true" ] && [ "$INSTALL_CODEX" != "true" ]; then
+  echo "Error: install_playwright_mcp requires install_codex"
+  exit 1
+fi
+
+print_plan() {
+  echo "==> Sprite provisioning plan"
+  echo "  Name: $SPRITE_NAME"
+  echo "  Repository: ${REPO:-none}"
+  echo "  GitHub CLI auth: $INSTALL_GH"
+  echo "  Codex: $INSTALL_CODEX"
+  echo "  Yarn: $INSTALL_YARN"
+  echo "  Playwright MCP: $INSTALL_PLAYWRIGHT_MCP"
+  echo "  Docker: $INSTALL_DOCKER"
+  echo "  OpenSSH/sshd: $INSTALL_OPENSSH"
+  echo "  Cheatsheet: $INSTALL_CHEATSHEET"
+}
+
+if [ "$DRY_RUN" = "true" ]; then
+  print_plan
+  echo "==> Dry run complete; no Sprite changes made"
+  exit 0
+fi
+
+################################################################
 # Create Sprite (skip if already exists)
 ################################################################
 
-if sprite exec -s $SPRITE_NAME true > /dev/null 2>&1; then
+if sprite exec -s "$SPRITE_NAME" true > /dev/null 2>&1; then
   echo "==> Sprite '$SPRITE_NAME' already exists, updating"
 else
   echo "==> Creating sprite: $SPRITE_NAME"
-  sprite create -skip-console $SPRITE_NAME
+  sprite create -skip-console "$SPRITE_NAME"
 fi
 
 ################################################################
@@ -82,12 +133,12 @@ fi
 ################################################################
 
 if [ -f "$DIR/scripts/install_docker.sh" ]; then
-  run_script() { SPRITE_NAME=$SPRITE_NAME bash "$DIR/$1"; }
+  run_script() { SPRITE_NAME="$SPRITE_NAME" bash "$DIR/$1"; }
 else
   run_script() {
     local tmp=$(mktemp)
     curl -sL "$BASE_URL/$1" -o "$tmp"
-    SPRITE_NAME=$SPRITE_NAME bash "$tmp"
+    SPRITE_NAME="$SPRITE_NAME" bash "$tmp"
     rm -f "$tmp"
   }
 fi
@@ -97,16 +148,14 @@ fi
 ################################################################
 
 # INSTALL GH CLI (first, so docker can use gh token for ghcr.io)
-if [ "$(cfg install_gh true)" = "true" ]; then
+if [ "$INSTALL_GH" = "true" ]; then
   echo "==> Installing GitHub CLI"
-  export GH_SSH_KEY=$(cfg gh_ssh_key "$HOME/.ssh/id_ed25519_dissonantP")
   run_script "scripts/install_gh.sh"
 else
   echo "==> Skipping GitHub CLI"
 fi
 
 # INSTALL OPENSSH
-export INSTALL_OPENSSH=$(cfg install_openssh false)
 if [ "$INSTALL_OPENSSH" = "true" ]; then
   echo "==> Installing OpenSSH"
   run_script "scripts/install_openssh.sh"
@@ -115,17 +164,15 @@ else
 fi
 
 # INSTALL DOCKER
-if [ "$(cfg install_docker true)" = "true" ]; then
+if [ "$INSTALL_DOCKER" = "true" ]; then
   echo "==> Installing Docker"
-  export DOCKER_GHCR_LOGIN=$(cfg docker_ghcr_login true)
-  export DOCKER_GHCR_USER=$(cfg docker_ghcr_user dissonantP)
   run_script "scripts/install_docker.sh"
 else
   echo "==> Skipping Docker"
 fi
 
 # INSTALL YARN
-if [ "$(cfg install_yarn true)" = "true" ]; then
+if [ "$INSTALL_YARN" = "true" ]; then
   echo "==> Installing Yarn"
   run_script "scripts/install_yarn.sh"
 else
@@ -133,16 +180,15 @@ else
 fi
 
 # INSTALL CODEX
-if [ "$(cfg install_codex true)" = "true" ]; then
+if [ "$INSTALL_CODEX" = "true" ]; then
   echo "==> Installing Codex"
-  export CODEX_AUTH_FILE=$(cfg codex_auth_file "$HOME/.codex/auth.json")
   run_script "scripts/install_codex.sh"
 else
   echo "==> Skipping Codex"
 fi
 
 # INSTALL PLAYWRIGHT MCP
-if [ "$(cfg install_playwright_mcp true)" = "true" ]; then
+if [ "$INSTALL_PLAYWRIGHT_MCP" = "true" ]; then
   echo "==> Installing Playwright MCP"
   run_script "scripts/install_playwright_mcp.sh"
 else
@@ -150,15 +196,18 @@ else
 fi
 
 # CLONE REPO
-REPO=$(cfg repo "")
 if [ -n "$REPO" ]; then
   echo "==> Cloning repo: $REPO"
-  sprite exec -s $SPRITE_NAME gh repo clone "$REPO"
+  sprite exec -s "$SPRITE_NAME" gh repo clone "$REPO"
 fi
 
 # CHEATSHEET
-echo "==> Installing cheatsheet"
-run_script "scripts/install_cheatsheet.sh"
+if [ "$INSTALL_CHEATSHEET" = "true" ]; then
+  echo "==> Installing cheatsheet"
+  run_script "scripts/install_cheatsheet.sh"
+else
+  echo "==> Skipping cheatsheet"
+fi
 
 # VALIDATE
 echo "==> Validating"

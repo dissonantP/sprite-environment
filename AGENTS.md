@@ -32,8 +32,9 @@ Config keys:
 | `sprite_name` | string | (required) | Name of the sprite. Set via `--name` or config. |
 | `install_gh` | bool | `true` | Authenticate gh CLI and upload SSH keys. Requires local `gh auth login` first. |
 | `gh_ssh_key` | path | `$HOME/.ssh/id_ed25519_dissonantP` | Private key to upload (`.pub` appended for public). Uploaded as `id_ed25519` on sprite. |
-| `install_docker` | bool | `true` | Install Docker Engine, Compose plugin, overlay2 storage. |
+| `install_docker` | bool | `false` | Install Docker Engine, Compose plugin, overlay2 storage. |
 | `install_openssh` | bool | `false` | Install OpenSSH server and register `sshd` as a sprite service. |
+| `install_cheatsheet` | bool | `false` | Install `~/CHEATSHEET.md`. |
 | `docker_ghcr_login` | bool | `true` | Login to ghcr.io using gh token. Requires `install_gh: true`. |
 | `docker_ghcr_user` | string | `dissonantP` | GitHub username for ghcr.io auth. |
 | `install_yarn` | bool | `true` | Install Yarn globally via npm. |
@@ -50,10 +51,11 @@ Config keys:
 4. **install_yarn.sh** — Installs Yarn globally via npm.
 5. **install_codex.sh** — Installs via npm, copies auth file using `sprite exec -file`.
 6. **install_playwright_mcp.sh** — Installs via npm, installs Chrome, registers with `codex mcp add`.
-7. **install_cheatsheet.sh** — Writes ~/CHEATSHEET.md on the sprite.
+7. **install_cheatsheet.sh** — Optionally writes ~/CHEATSHEET.md on the sprite.
 8. **validate.sh** — Checks all components are working.
 
 Each script is idempotent with a guard clause at the top (checks if already installed, exits 0 if so).
+Validation only checks components enabled in the resolved provisioning plan. Docker, OpenSSH/sshd, and the cheatsheet are opt-in.
 
 ## Sprite environment constraints
 

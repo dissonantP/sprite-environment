@@ -1,18 +1,18 @@
 # sprite-environment
 
-Automated provisioning for [Sprites](https://sprites.dev) dev environments. Installs and pre-authenticates Docker, Docker Compose, Codex, Playwright MCP, and GitHub CLI.
+Automated provisioning for [Sprites](https://sprites.dev) development environments. The default profile installs Codex, Playwright MCP, Yarn, and authenticated GitHub CLI access.
 
 ## What it does
 
 - Installs Codex and copies `$HOME/.codex/auth.json`
 - Copies over `gh` login and local SSH key
-- Installs Docker with the Sprite-compatible setup (see `/.sprite/docs/docker.md` on the Sprite)
-- Installs Docker Compose
-- Logs into Docker using `gh` credentials
 - Installs Yarn globally via npm
 - Installs Playwright MCP to Codex
-- Add a ~/CHEATSHEET.md with a couple useful commands
-- Optionally installs OpenSSH server and registers `sshd` with sprite services
+- Optionally installs Docker and Docker Compose with the Sprite-compatible setup
+- Optionally installs OpenSSH server and registers `sshd` with Sprite services
+- Optionally adds `~/CHEATSHEET.md`
+
+Docker, OpenSSH/sshd, and the cheatsheet are disabled by default.
 
 ## Quick start
 
@@ -34,11 +34,12 @@ bash /tmp/setup.sh --name my-sprite --repo owner/repo
 | `--name` | Sprite name (required, lowercase alphanumeric with hyphens) |
 | `--repo owner/repo` | Clone a GitHub repo after setup |
 | `--config path` | Custom config file (defaults to `config.yaml`) |
+| `--dry-run` | Print the resolved provisioning plan without changing a Sprite |
 | `--<key> <value>` | Override any config key (e.g. `--install_docker false`) |
 
 ## Configuration
 
-Edit `config.yaml` to toggle components and set paths. See comments in the file. All keys can also be set via CLI args. OpenSSH is controlled by `install_openssh` (default `false`).
+Edit `config.yaml` to toggle components and set paths. All keys can also be set via CLI arguments. Opt into optional components with `--install_docker true`, `--install_openssh true`, or `--install_cheatsheet true`.
 
 ## Assumptions
 

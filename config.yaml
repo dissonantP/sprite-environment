@@ -15,11 +15,15 @@ codex_auth_file: $HOME/.codex/auth.json
 
 # ── Docker ─────────────────────────────────────────────
 # Install Docker Engine and Compose plugin
-install_docker: true
+install_docker: false
 
 # ── OpenSSH ────────────────────────────────────────────
 # Install OpenSSH server and create sshd sprite service
 install_openssh: false
+
+# ── Cheatsheet ─────────────────────────────────────────
+# Install ~/CHEATSHEET.md with optional component notes
+install_cheatsheet: false
 
 # ── Yarn ────────────────────────────────────────────────
 # Install Yarn package manager globally
