@@ -44,9 +44,9 @@ docker_ghcr_login: true
 docker_ghcr_user: dissonantP
 
 # ── GitHub CLI ─────────────────────────────────────────
-# Authenticate gh on the sprite via token injection
-# Requires being logged in with gh locally first (gh auth login)
-install_gh: true
+# Copy broad gh authentication and a personal SSH key to the Sprite.
+# This is disabled because a --yolo agent could read those credentials.
+install_gh: false
 
 # Local SSH private key to upload (public key derived by appending .pub)
 gh_ssh_key: $HOME/.ssh/id_ed25519
@@ -56,11 +56,15 @@ gh_ssh_key: $HOME/.ssh/id_ed25519
 # Can be overridden with --repo CLI arg
 repo:
 
+# With repo set, generate a key inside the Sprite and use the local gh CLI to
+# register its public key as a write-enabled deploy key for only that repo.
+configure_repo_deploy_key: true
+
 # ── Playwright MCP ─────────────────────────────────────
 # Install Playwright MCP server and register with Codex
 install_playwright_mcp: true
 
 # ── Vercel MCP ─────────────────────────────────────────
 # Register Vercel's remote MCP and copy its OAuth credentials
-install_vercel_mcp: true
+install_vercel_mcp: false
 vercel_mcp_url: https://mcp.vercel.com

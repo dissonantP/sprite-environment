@@ -1,11 +1,13 @@
 sprite exec -s "$SPRITE_NAME" -- env \
-  INSTALL_GH="${INSTALL_GH:-true}" \
+  INSTALL_GH="${INSTALL_GH:-false}" \
+  CONFIGURE_REPO_DEPLOY_KEY="${CONFIGURE_REPO_DEPLOY_KEY:-true}" \
+  REPO="${REPO:-}" \
   INSTALL_OPENSSH="${INSTALL_OPENSSH:-false}" \
   INSTALL_DOCKER="${INSTALL_DOCKER:-false}" \
   INSTALL_YARN="${INSTALL_YARN:-true}" \
   INSTALL_CODEX="${INSTALL_CODEX:-true}" \
   INSTALL_PLAYWRIGHT_MCP="${INSTALL_PLAYWRIGHT_MCP:-true}" \
-  INSTALL_VERCEL_MCP="${INSTALL_VERCEL_MCP:-true}" \
+  INSTALL_VERCEL_MCP="${INSTALL_VERCEL_MCP:-false}" \
   INSTALL_CHEATSHEET="${INSTALL_CHEATSHEET:-false}" \
   DOCKER_GHCR_LOGIN="${DOCKER_GHCR_LOGIN:-true}" \
   bash <<'EOF'
@@ -56,6 +58,15 @@ fi
 if [ "$INSTALL_GH" = "true" ]; then
   check "gh CLI authenticated" "gh auth status"
   check "SSH key present" "test -f ~/.ssh/id_ed25519"
+fi
+
+if [ -n "$REPO" ] && [ "$CONFIGURE_REPO_DEPLOY_KEY" = "true" ]; then
+  REPO_DIR="${REPO##*/}"
+  REPO_DIR="${REPO_DIR%.git}"
+  check "Repository deploy private key present" "test -f ~/.ssh/id_ed25519_repo"
+  check "Repository cloned" "test -d \"\$HOME/$REPO_DIR/.git\""
+  check "Repository fetch access" "git -C \"\$HOME/$REPO_DIR\" ls-remote origin"
+  check "Repository push access" "git -C \"\$HOME/$REPO_DIR\" push --dry-run origin HEAD"
 fi
 
 if [ "$INSTALL_OPENSSH" = "true" ]; then

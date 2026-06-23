@@ -34,7 +34,7 @@ Config keys:
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `sprite_name` | string | (required) | Name of the sprite. Set via `--name` or config. |
-| `install_gh` | bool | `true` | Authenticate gh CLI and upload SSH keys. Requires local `gh auth login` first. |
+| `install_gh` | bool | `false` | Opt in to copying broad gh authentication and a personal SSH key. |
 | `gh_ssh_key` | path | `$HOME/.ssh/id_ed25519` | Private key to upload (`.pub` appended for public). Uploaded as `id_ed25519` on sprite. |
 | `install_docker` | bool | `false` | Install Docker Engine, Compose plugin, overlay2 storage. |
 | `install_openssh` | bool | `false` | Install OpenSSH server and register `sshd` as a sprite service. |
@@ -47,21 +47,23 @@ Config keys:
 | `codex_model` | string | local top-level Codex model | Model written to the Sprite's `~/.codex/config.toml`. |
 | `codex_mcp_credentials_file` | path | `$HOME/.codex/.credentials.json` | Local file-backed MCP OAuth store; only Vercel records are copied. |
 | `repo` | string | (empty) | GitHub repo to clone (e.g. `owner/repo`). |
+| `configure_repo_deploy_key` | bool | `true` | With `repo`, generate a Sprite-local key and register it as a write-enabled deploy key. |
 | `install_playwright_mcp` | bool | `true` | Install Playwright MCP and register with Codex. |
-| `install_vercel_mcp` | bool | `true` | Register Vercel MCP and merge its local OAuth record into the Sprite credential store. |
+| `install_vercel_mcp` | bool | `false` | Register Vercel MCP and merge its local OAuth record into the Sprite credential store. |
 | `vercel_mcp_url` | URL | `https://mcp.vercel.com` | Vercel's remote MCP endpoint. |
 
 ## Script execution order
 
-1. **install_gh.sh** — Runs first because Docker needs the gh token for ghcr.io login.
-2. **install_openssh.sh** — Installs `openssh-server` and creates `sshd` service via `sprite-env services create`.
-3. **install_docker.sh** — Must use `docker.io` from apt (not `docker-ce`). Uses overlay2 storage driver. Daemon started via `sprite-env services create` (not systemd/nohup). All docker commands require `sudo`.
-4. **install_yarn.sh** — Installs Yarn globally via npm.
-5. **install_codex.sh** — Installs via npm, copies auth file using `sprite exec --file`.
-6. **install_playwright_mcp.sh** — Installs via npm, installs Chrome, registers with `codex mcp add`.
-7. **install_vercel_mcp.sh** — Registers the remote Vercel MCP, enables file-backed OAuth, and securely merges only Vercel's local credential record.
-8. **install_cheatsheet.sh** — Optionally writes ~/CHEATSHEET.md on the sprite.
-9. **validate.sh** — Checks all components are working.
+1. **install_gh.sh** — Optional broad gh token and personal SSH-key transfer.
+2. **install_repo_deploy_key.sh** — With `repo`, generates a Sprite-local key, registers its public key through local `gh`, clones, and verifies push access.
+3. **install_openssh.sh** — Installs `openssh-server` and creates `sshd` service via `sprite-env services create`.
+4. **install_docker.sh** — Must use `docker.io` from apt (not `docker-ce`). Uses overlay2 storage driver. Daemon started via `sprite-env services create` (not systemd/nohup). All docker commands require `sudo`.
+5. **install_yarn.sh** — Installs Yarn globally via npm.
+6. **install_codex.sh** — Installs via npm, copies auth file using `sprite exec --file`.
+7. **install_playwright_mcp.sh** — Installs via npm, installs Chrome, registers with `codex mcp add`.
+8. **install_vercel_mcp.sh** — Optional Vercel MCP registration and credential transfer.
+9. **install_cheatsheet.sh** — Optionally writes ~/CHEATSHEET.md on the sprite.
+10. **validate.sh** — Checks all components are working.
 
 Each script is idempotent with a guard clause at the top (checks if already installed, exits 0 if so).
 Validation only checks components enabled in the resolved provisioning plan. Docker, OpenSSH/sshd, and the cheatsheet are opt-in.
@@ -147,6 +149,7 @@ README.md                     # Human-facing docs
 AGENTS.md                     # This file (LLM developer docs)
 scripts/
   install_gh.sh               # gh auth + SSH key upload
+  install_repo_deploy_key.sh  # repo-scoped write deploy key + clone
   install_openssh.sh          # openssh-server install + sshd sprite service
   install_docker.sh           # docker.io + compose plugin + overlay2 + sprite service + ghcr.io login
   install_yarn.sh             # yarn package manager via npm

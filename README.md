@@ -1,19 +1,19 @@
 # sprite-environment
 
-Automated provisioning for [Sprites](https://sprites.dev) development environments. The default profile installs Codex, Playwright MCP, Vercel MCP, Yarn, and authenticated GitHub CLI access.
+Automated provisioning for [Sprites](https://sprites.dev) development environments. The default profile installs Codex, Playwright MCP, and Yarn. When a repository is supplied, it configures a repository-scoped write deploy key by default.
 
 ## What it does
 
 - Installs Codex and copies `$HOME/.codex/auth.json`
-- Copies over `gh` login and local SSH key
+- Generates repository deploy keys inside Sprites and registers only their public keys through the local `gh` CLI
 - Installs Yarn globally via npm
 - Installs Playwright MCP to Codex
-- Registers Vercel MCP and copies only its OAuth credential record from the local file-backed Codex credential store
+- Optionally copies broad GitHub authentication or Vercel MCP credentials when explicitly enabled
 - Optionally installs Docker and Docker Compose with the Sprite-compatible setup
 - Optionally installs OpenSSH server and registers `sshd` with Sprite services
 - Optionally adds `~/CHEATSHEET.md`
 
-Docker, OpenSSH/sshd, and the cheatsheet are disabled by default. Vercel MCP requires a local `codex mcp login vercel` completed with `mcp_oauth_credentials_store = "file"` configured in `~/.codex/config.toml`.
+Broad GitHub authentication, Vercel MCP, Docker, OpenSSH/sshd, and the cheatsheet are disabled by default. Repository deploy keys are write-enabled but limited to the selected repository.
 
 ## Quick start
 
@@ -48,7 +48,6 @@ Edit `config.yaml` to toggle components and set paths. All keys can also be set 
 ## Assumptions
 
 - [Sprite CLI](https://sprites.dev) installed
-- `gh auth login` completed locally, with `read:packages` scope (`gh auth refresh -s read:packages`)
+- `gh auth login` completed locally so setup can register repository deploy keys
 - `~/.codex/auth.json` exists (Codex auth config)
-- `~/.codex/.credentials.json` contains a Vercel OAuth login (`codex mcp login vercel`)
-- An SSH keypair in `~/.ssh/` for GitHub (set the key name in `config.yaml` via `gh_ssh_key`)
+- Vercel OAuth credentials and a personal GitHub SSH key are needed only when their opt-in features are enabled

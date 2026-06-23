@@ -22,8 +22,10 @@ Examples:
   ./setup.sh --name test-sprite --dry-run
 
 Current default profile:
-  Enabled:  GitHub authentication, Codex, Yarn, Playwright MCP, Vercel MCP
-  Disabled: Docker, OpenSSH/sshd, cheatsheet
+  Enabled:  Codex, Yarn, Playwright MCP
+  With --repo: a repository-scoped write deploy key generated on the Sprite
+  Disabled: broad GitHub authentication, Vercel MCP, Docker, OpenSSH/sshd,
+            cheatsheet
   Model:    inherited from the top-level model in ~/.codex/config.toml
   Repo:     none unless --repo is supplied
 
@@ -46,7 +48,14 @@ Primary options:
 
 Component options:
   --install_gh BOOL
-      Authenticate GitHub CLI and upload the configured SSH key. Default: true.
+      Copy broad GitHub CLI authentication and the configured personal SSH key.
+      This is not needed when repository deploy-key setup is enabled.
+      Default: false.
+
+  --configure_repo_deploy_key BOOL
+      With --repo, generate a key inside the Sprite and register its public key
+      as a write-enabled deploy key for only that repository. The local gh CLI
+      performs registration; its token is not copied. Default: true.
 
   --install_codex BOOL
       Install Codex and copy local Codex authentication. Default: true.
@@ -59,7 +68,7 @@ Component options:
 
   --install_vercel_mcp BOOL
       Register Vercel MCP and copy its scoped OAuth record. Requires Codex.
-      Default: true.
+      Default: false.
 
   --install_docker BOOL
       Install Sprite-compatible Docker Engine and Compose. Default: false.
@@ -193,13 +202,14 @@ fi
 # Resolve component plan
 ################################################################
 
-export INSTALL_GH=$(cfg install_gh true)
+export INSTALL_GH=$(cfg install_gh false)
 export INSTALL_OPENSSH=$(cfg install_openssh false)
 export INSTALL_DOCKER=$(cfg install_docker false)
 export INSTALL_YARN=$(cfg install_yarn true)
 export INSTALL_CODEX=$(cfg install_codex true)
 export INSTALL_PLAYWRIGHT_MCP=$(cfg install_playwright_mcp true)
-export INSTALL_VERCEL_MCP=$(cfg install_vercel_mcp true)
+export INSTALL_VERCEL_MCP=$(cfg install_vercel_mcp false)
+export CONFIGURE_REPO_DEPLOY_KEY=$(cfg configure_repo_deploy_key true)
 export INSTALL_CHEATSHEET=$(cfg install_cheatsheet false)
 export DOCKER_GHCR_LOGIN=$(cfg docker_ghcr_login true)
 export DOCKER_GHCR_USER=$(cfg docker_ghcr_user dissonantP)
@@ -210,6 +220,7 @@ export CODEX_MCP_CREDENTIALS_FILE=$(cfg codex_mcp_credentials_file "$HOME/.codex
 export VERCEL_MCP_URL=$(cfg vercel_mcp_url "https://mcp.vercel.com")
 REPO=$(cfg repo "")
 DRY_RUN=$(cfg dry_run false)
+export REPO
 
 if [ "$INSTALL_PLAYWRIGHT_MCP" = "true" ] && [ "$INSTALL_CODEX" != "true" ]; then
   echo "Error: install_playwright_mcp requires install_codex"
@@ -218,6 +229,11 @@ fi
 
 if [ "$INSTALL_VERCEL_MCP" = "true" ] && [ "$INSTALL_CODEX" != "true" ]; then
   echo "Error: install_vercel_mcp requires install_codex"
+  exit 1
+fi
+
+if [ -n "$REPO" ] && [ "$CONFIGURE_REPO_DEPLOY_KEY" != "true" ] && [ "$INSTALL_GH" != "true" ]; then
+  echo "Error: --repo requires configure_repo_deploy_key: true or install_gh: true"
   exit 1
 fi
 
@@ -235,7 +251,12 @@ print_plan() {
   echo "==> Sprite provisioning plan"
   echo "  Name: $SPRITE_NAME"
   echo "  Repository: ${REPO:-none}"
-  echo "  GitHub CLI auth: $INSTALL_GH"
+  echo "  Broad GitHub CLI auth: $INSTALL_GH"
+  if [ -n "$REPO" ]; then
+    echo "  Repository deploy key: $CONFIGURE_REPO_DEPLOY_KEY"
+  else
+    echo "  Repository deploy key: not applicable (no repository)"
+  fi
   echo "  Codex: $INSTALL_CODEX"
   if [ "$INSTALL_CODEX" = "true" ]; then
     echo "  Codex model: $CODEX_MODEL"
@@ -252,6 +273,13 @@ if [ "$DRY_RUN" = "true" ]; then
   print_plan
   echo "==> Dry run complete; no Sprite changes made"
   exit 0
+fi
+
+if [ -n "$REPO" ] && [ "$CONFIGURE_REPO_DEPLOY_KEY" = "true" ]; then
+  if ! command -v gh > /dev/null 2>&1 || ! gh auth status > /dev/null 2>&1; then
+    echo "Error: repository deploy-key setup requires an authenticated local gh CLI"
+    exit 1
+  fi
 fi
 
 ################################################################
@@ -284,12 +312,18 @@ fi
 # Run scripts
 ################################################################
 
-# INSTALL GH CLI (first, so docker can use gh token for ghcr.io)
+# INSTALL BROAD GH AUTH (opt-in; first so docker can use gh token for ghcr.io)
 if [ "$INSTALL_GH" = "true" ]; then
   echo "==> Installing GitHub CLI"
   run_script "scripts/install_gh.sh"
 else
   echo "==> Skipping GitHub CLI"
+fi
+
+# CONFIGURE REPOSITORY DEPLOY KEY AND CLONE
+if [ -n "$REPO" ] && [ "$CONFIGURE_REPO_DEPLOY_KEY" = "true" ]; then
+  echo "==> Configuring repository deploy key"
+  run_script "scripts/install_repo_deploy_key.sh"
 fi
 
 # INSTALL OPENSSH
@@ -340,10 +374,18 @@ else
   echo "==> Skipping Vercel MCP"
 fi
 
-# CLONE REPO
-if [ -n "$REPO" ]; then
+# CLONE REPO USING BROAD GH AUTH
+if [ -n "$REPO" ] && [ "$CONFIGURE_REPO_DEPLOY_KEY" != "true" ]; then
   echo "==> Cloning repo: $REPO"
-  sprite exec -s "$SPRITE_NAME" -- gh repo clone "$REPO"
+  REPO_DIR="${REPO##*/}"
+  REPO_DIR="${REPO_DIR%.git}"
+  sprite exec -s "$SPRITE_NAME" -- env REPO="$REPO" REPO_DIR="$REPO_DIR" bash <<'EOF'
+if [ -d "$HOME/$REPO_DIR/.git" ]; then
+  echo "  Repository already cloned"
+else
+  gh repo clone "$REPO" "$HOME/$REPO_DIR"
+fi
+EOF
 fi
 
 # CHEATSHEET
