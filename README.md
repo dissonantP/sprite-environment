@@ -1,6 +1,6 @@
 # sprite-environment
 
-Automated provisioning for [Sprites](https://sprites.dev) development environments. The default profile installs Codex, Playwright MCP, Yarn, and authenticated GitHub CLI access.
+Automated provisioning for [Sprites](https://sprites.dev) development environments. The default profile installs Codex, Playwright MCP, Vercel MCP, Yarn, and authenticated GitHub CLI access.
 
 ## What it does
 
@@ -8,11 +8,12 @@ Automated provisioning for [Sprites](https://sprites.dev) development environmen
 - Copies over `gh` login and local SSH key
 - Installs Yarn globally via npm
 - Installs Playwright MCP to Codex
+- Registers Vercel MCP and copies only its OAuth credential record from the local file-backed Codex credential store
 - Optionally installs Docker and Docker Compose with the Sprite-compatible setup
 - Optionally installs OpenSSH server and registers `sshd` with Sprite services
 - Optionally adds `~/CHEATSHEET.md`
 
-Docker, OpenSSH/sshd, and the cheatsheet are disabled by default.
+Docker, OpenSSH/sshd, and the cheatsheet are disabled by default. Vercel MCP requires a local `codex mcp login vercel` completed with `mcp_oauth_credentials_store = "file"` configured in `~/.codex/config.toml`.
 
 ## Quick start
 
@@ -46,4 +47,5 @@ Edit `config.yaml` to toggle components and set paths. All keys can also be set 
 - [Sprite CLI](https://sprites.dev) installed
 - `gh auth login` completed locally, with `read:packages` scope (`gh auth refresh -s read:packages`)
 - `~/.codex/auth.json` exists (Codex auth config)
+- `~/.codex/.credentials.json` contains a Vercel OAuth login (`codex mcp login vercel`)
 - An SSH keypair in `~/.ssh/` for GitHub (set the key name in `config.yaml` via `gh_ssh_key`)

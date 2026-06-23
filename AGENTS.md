@@ -21,7 +21,7 @@ Config resolution order:
 2. `config.yaml` next to setup.sh (local runs)
 3. Remote `config.yaml` from GitHub Pages (remote runs)
 
-Config values are exported as env vars to sub-scripts: `CODEX_AUTH_FILE`, `CODEX_MODEL`, `GH_SSH_KEY`, `DOCKER_GHCR_LOGIN`, `DOCKER_GHCR_USER`, `INSTALL_OPENSSH`. Sub-scripts use these with fallback defaults so they work standalone too.
+Config values are exported as env vars to sub-scripts, including `CODEX_AUTH_FILE`, `CODEX_MODEL`, `CODEX_MCP_CREDENTIALS_FILE`, `VERCEL_MCP_URL`, `GH_SSH_KEY`, `DOCKER_GHCR_LOGIN`, `DOCKER_GHCR_USER`, and component toggles. Sub-scripts use fallback defaults so they work standalone too.
 
 Every config key can be overridden via CLI: `--key value`. `--name` is an alias for `--sprite_name`, `--repo` is an alias for `--repo`. All other keys use their exact name (e.g. `--install_docker false`). CLI args are written to a temp overrides file and checked first by `cfg()`.
 
@@ -41,8 +41,11 @@ Config keys:
 | `install_codex` | bool | `true` | Install Codex CLI globally via npm. |
 | `codex_auth_file` | path | `$HOME/.codex/auth.json` | Local auth file to copy into sprite. |
 | `codex_model` | string | local top-level Codex model | Model written to the Sprite's `~/.codex/config.toml`. |
+| `codex_mcp_credentials_file` | path | `$HOME/.codex/.credentials.json` | Local file-backed MCP OAuth store; only Vercel records are copied. |
 | `repo` | string | (empty) | GitHub repo to clone (e.g. `owner/repo`). |
 | `install_playwright_mcp` | bool | `true` | Install Playwright MCP and register with Codex. |
+| `install_vercel_mcp` | bool | `true` | Register Vercel MCP and merge its local OAuth record into the Sprite credential store. |
+| `vercel_mcp_url` | URL | `https://mcp.vercel.com` | Vercel's remote MCP endpoint. |
 
 ## Script execution order
 
@@ -52,8 +55,9 @@ Config keys:
 4. **install_yarn.sh** — Installs Yarn globally via npm.
 5. **install_codex.sh** — Installs via npm, copies auth file using `sprite exec --file`.
 6. **install_playwright_mcp.sh** — Installs via npm, installs Chrome, registers with `codex mcp add`.
-7. **install_cheatsheet.sh** — Optionally writes ~/CHEATSHEET.md on the sprite.
-8. **validate.sh** — Checks all components are working.
+7. **install_vercel_mcp.sh** — Registers the remote Vercel MCP, enables file-backed OAuth, and securely merges only Vercel's local credential record.
+8. **install_cheatsheet.sh** — Optionally writes ~/CHEATSHEET.md on the sprite.
+9. **validate.sh** — Checks all components are working.
 
 Each script is idempotent with a guard clause at the top (checks if already installed, exits 0 if so).
 Validation only checks components enabled in the resolved provisioning plan. Docker, OpenSSH/sshd, and the cheatsheet are opt-in.
@@ -144,6 +148,7 @@ scripts/
   install_yarn.sh             # yarn package manager via npm
   install_codex.sh            # codex CLI + auth file copy
   install_playwright_mcp.sh   # playwright MCP + chrome + codex registration
+  install_vercel_mcp.sh       # Vercel MCP registration + scoped OAuth credential transfer
   install_cheatsheet.sh       # ~/CHEATSHEET.md on sprite
   validate.sh                 # health checks for all components
 ```

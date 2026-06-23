@@ -85,17 +85,25 @@ export INSTALL_DOCKER=$(cfg install_docker false)
 export INSTALL_YARN=$(cfg install_yarn true)
 export INSTALL_CODEX=$(cfg install_codex true)
 export INSTALL_PLAYWRIGHT_MCP=$(cfg install_playwright_mcp true)
+export INSTALL_VERCEL_MCP=$(cfg install_vercel_mcp true)
 export INSTALL_CHEATSHEET=$(cfg install_cheatsheet false)
 export DOCKER_GHCR_LOGIN=$(cfg docker_ghcr_login true)
 export DOCKER_GHCR_USER=$(cfg docker_ghcr_user dissonantP)
 export GH_SSH_KEY=$(cfg gh_ssh_key "$HOME/.ssh/id_ed25519")
 export CODEX_AUTH_FILE=$(cfg codex_auth_file "$HOME/.codex/auth.json")
 export CODEX_MODEL=$(cfg codex_model "")
+export CODEX_MCP_CREDENTIALS_FILE=$(cfg codex_mcp_credentials_file "$HOME/.codex/.credentials.json")
+export VERCEL_MCP_URL=$(cfg vercel_mcp_url "https://mcp.vercel.com")
 REPO=$(cfg repo "")
 DRY_RUN=$(cfg dry_run false)
 
 if [ "$INSTALL_PLAYWRIGHT_MCP" = "true" ] && [ "$INSTALL_CODEX" != "true" ]; then
   echo "Error: install_playwright_mcp requires install_codex"
+  exit 1
+fi
+
+if [ "$INSTALL_VERCEL_MCP" = "true" ] && [ "$INSTALL_CODEX" != "true" ]; then
+  echo "Error: install_vercel_mcp requires install_codex"
   exit 1
 fi
 
@@ -120,6 +128,7 @@ print_plan() {
   fi
   echo "  Yarn: $INSTALL_YARN"
   echo "  Playwright MCP: $INSTALL_PLAYWRIGHT_MCP"
+  echo "  Vercel MCP: $INSTALL_VERCEL_MCP"
   echo "  Docker: $INSTALL_DOCKER"
   echo "  OpenSSH/sshd: $INSTALL_OPENSSH"
   echo "  Cheatsheet: $INSTALL_CHEATSHEET"
@@ -207,6 +216,14 @@ if [ "$INSTALL_PLAYWRIGHT_MCP" = "true" ]; then
   run_script "scripts/install_playwright_mcp.sh"
 else
   echo "==> Skipping Playwright MCP"
+fi
+
+# INSTALL VERCEL MCP
+if [ "$INSTALL_VERCEL_MCP" = "true" ]; then
+  echo "==> Installing Vercel MCP"
+  run_script "scripts/install_vercel_mcp.sh"
+else
+  echo "==> Skipping Vercel MCP"
 fi
 
 # CLONE REPO

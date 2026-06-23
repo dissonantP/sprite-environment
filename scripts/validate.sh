@@ -5,6 +5,7 @@ sprite exec -s "$SPRITE_NAME" -- env \
   INSTALL_YARN="${INSTALL_YARN:-true}" \
   INSTALL_CODEX="${INSTALL_CODEX:-true}" \
   INSTALL_PLAYWRIGHT_MCP="${INSTALL_PLAYWRIGHT_MCP:-true}" \
+  INSTALL_VERCEL_MCP="${INSTALL_VERCEL_MCP:-true}" \
   INSTALL_CHEATSHEET="${INSTALL_CHEATSHEET:-false}" \
   DOCKER_GHCR_LOGIN="${DOCKER_GHCR_LOGIN:-true}" \
   bash <<'EOF'
@@ -40,6 +41,12 @@ fi
 if [ "$INSTALL_PLAYWRIGHT_MCP" = "true" ]; then
   check "Codex MCP includes Playwright" "codex mcp list 2>&1 | grep -qi playwright"
   check "Playwright MCP installed" "npm list -g @playwright/mcp"
+fi
+
+if [ "$INSTALL_VERCEL_MCP" = "true" ]; then
+  check "Codex MCP includes Vercel" "codex mcp get vercel 2>&1 | grep -q 'https://mcp.vercel.com'"
+  check "Codex uses file-backed MCP OAuth" "grep -q '^mcp_oauth_credentials_store = \"file\"' ~/.codex/config.toml"
+  check "Vercel MCP OAuth configured" "python3 -c 'import json, os; data=json.load(open(os.path.expanduser(\"~/.codex/.credentials.json\"))); assert any(isinstance(v, dict) and v.get(\"server_name\") == \"vercel\" for v in data.values())'"
 fi
 
 if [ "$INSTALL_YARN" = "true" ]; then

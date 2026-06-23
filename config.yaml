@@ -17,6 +17,10 @@ codex_auth_file: $HOME/.codex/auth.json
 # local ~/.codex/config.toml.
 codex_model:
 
+# Local file-backed Codex MCP OAuth credential store. The Vercel installer
+# extracts and copies only Vercel's credential record.
+codex_mcp_credentials_file: $HOME/.codex/.credentials.json
+
 # ── Docker ─────────────────────────────────────────────
 # Install Docker Engine and Compose plugin
 install_docker: false
@@ -55,3 +59,8 @@ repo:
 # ── Playwright MCP ─────────────────────────────────────
 # Install Playwright MCP server and register with Codex
 install_playwright_mcp: true
+
+# ── Vercel MCP ─────────────────────────────────────────
+# Register Vercel's remote MCP and copy its OAuth credentials
+install_vercel_mcp: true
+vercel_mcp_url: https://mcp.vercel.com
