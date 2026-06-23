@@ -251,6 +251,8 @@ bash /tmp/setup.sh --name app-dev --repo owner/app
 
 Download the script before running it. Do not pipe it directly into Bash:
 `sprite exec` consumes standard input, which can truncate a piped bootstrap.
+The component installers avoid stdin where possible, but downloaded execution
+is still the supported remote pattern.
 
 In remote mode, `setup.sh` downloads the published `config.yaml` and each
 required component script from GitHub Pages.

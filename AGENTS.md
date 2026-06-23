@@ -92,6 +92,12 @@ These are hard-won lessons from building these scripts. Read before writing new 
 
 Commands launched inside a remote heredoc can consume the remaining validation script too. Redirect stdin from `/dev/null` for commands such as `codex exec` that may read stdin.
 
+Prefer `sprite exec ... -- bash -c '...' < /dev/null` for remote command
+sequences that do not require input. Use a heredoc only when the remote command
+must receive script content through stdin. Playwright installation previously
+used a heredoc and could consume subsequent `setup.sh` input in some invocation
+paths.
+
 ### sprite exec requires a command separator
 
 The current CLI requires `--` before the remote command. Keep complex commands wrapped in `bash -c`:
