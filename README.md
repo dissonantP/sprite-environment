@@ -41,6 +41,10 @@ bash /tmp/setup.sh --name my-sprite --repo owner/repo
 | `--dry-run` | Print the resolved provisioning plan without changing a Sprite |
 | `--<key> <value>` | Override any config key (e.g. `--install_docker false`) |
 
+Config overrides also accept `--<key>=<value>`, such as
+`--install_vercel_mcp=true`. Missing values and unknown positional arguments
+produce an explicit error and a help hint.
+
 ## Configuration
 
 Edit `config.yaml` to toggle components and set paths. All keys can also be set via CLI arguments. Opt into optional components with `--install_docker true`, `--install_openssh true`, or `--install_cheatsheet true`.

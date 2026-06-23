@@ -27,7 +27,12 @@ Config resolution order:
 
 Config values are exported as env vars to sub-scripts, including `CODEX_AUTH_FILE`, `CODEX_MODEL`, `CODEX_MCP_CREDENTIALS_FILE`, `VERCEL_MCP_URL`, `GH_SSH_KEY`, `DOCKER_GHCR_LOGIN`, `DOCKER_GHCR_USER`, and component toggles. Sub-scripts use fallback defaults so they work standalone too.
 
-Every config key can be overridden via CLI: `--key value`. `--name` is an alias for `--sprite_name`, `--repo` is an alias for `--repo`. All other keys use their exact name (e.g. `--install_docker false`). CLI args are written to a temp overrides file and checked first by `cfg()`.
+Every config key can be overridden via CLI using `--key value` or
+`--key=value`. `--name` is an alias for `--sprite_name`, and `--repo` maps to
+`repo`. All other keys use their exact name (for example,
+`--install_docker false`). Missing values must produce an explicit error rather
+than terminating silently. CLI args are written to a temp overrides file and
+checked first by `cfg()`.
 
 Config keys:
 

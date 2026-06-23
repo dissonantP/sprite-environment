@@ -19,6 +19,7 @@ Examples:
   ./setup.sh --name my-sprite
   ./setup.sh --name form-forge --repo dissonantP/form-forge
   ./setup.sh --name test-sprite --install_docker true
+  ./setup.sh --name test-sprite --install_docker=true
   ./setup.sh --name test-sprite --dry-run
 
 Current default profile:
@@ -108,7 +109,8 @@ Docker registry settings:
 
 Configuration:
   Permanent defaults live in config.yaml. Command-line values override that
-  file for one run. Boolean values are written as true or false.
+  file for one run. Options accept either --key value or --key=value.
+  Boolean values are written as true or false.
 
   Resolution order:
     1. Command-line options
@@ -137,15 +139,68 @@ cleanup() {
 }
 trap cleanup EXIT
 
+option_error() {
+  echo "Error: $1" >&2
+  echo "Run './setup.sh --help' for usage." >&2
+  exit 2
+}
+
+require_value() {
+  local option="$1"
+  if [[ $# -lt 2 || -z "$2" || "$2" == --* ]]; then
+    option_error "$option requires a value"
+  fi
+}
+
 while [[ $# -gt 0 ]]; do
   case $1 in
     -h|--help) print_help; exit 0 ;;
-    --config) CONFIG_FILE="$2"; shift 2 ;;
-    --name) echo "sprite_name: $2" >> "$_CLI_OVERRIDES"; shift 2 ;;
-    --repo) echo "repo: $2" >> "$_CLI_OVERRIDES"; shift 2 ;;
+    --config)
+      require_value "$1" "${2:-}"
+      CONFIG_FILE="$2"
+      shift 2
+      ;;
+    --config=*)
+      CONFIG_FILE="${1#*=}"
+      [[ -n "$CONFIG_FILE" ]] || option_error "--config requires a value"
+      shift
+      ;;
+    --name)
+      require_value "$1" "${2:-}"
+      echo "sprite_name: $2" >> "$_CLI_OVERRIDES"
+      shift 2
+      ;;
+    --name=*)
+      value="${1#*=}"
+      [[ -n "$value" ]] || option_error "--name requires a value"
+      echo "sprite_name: $value" >> "$_CLI_OVERRIDES"
+      shift
+      ;;
+    --repo)
+      require_value "$1" "${2:-}"
+      echo "repo: $2" >> "$_CLI_OVERRIDES"
+      shift 2
+      ;;
+    --repo=*)
+      value="${1#*=}"
+      [[ -n "$value" ]] || option_error "--repo requires a value"
+      echo "repo: $value" >> "$_CLI_OVERRIDES"
+      shift
+      ;;
     --dry-run) echo "dry_run: true" >> "$_CLI_OVERRIDES"; shift ;;
-    --*) echo "${1#--}: $2" >> "$_CLI_OVERRIDES"; shift 2 ;;
-    *) echo "Unknown option: $1"; exit 1 ;;
+    --*=*)
+      key="${1%%=*}"
+      value="${1#*=}"
+      [[ -n "$value" ]] || option_error "$key requires a value"
+      echo "${key#--}: $value" >> "$_CLI_OVERRIDES"
+      shift
+      ;;
+    --*)
+      require_value "$1" "${2:-}"
+      echo "${1#--}: $2" >> "$_CLI_OVERRIDES"
+      shift 2
+      ;;
+    *) option_error "unknown argument: $1" ;;
   esac
 done
 
