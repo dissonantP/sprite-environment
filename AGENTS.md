@@ -10,6 +10,10 @@ This repo provisions [Sprites](https://sprites.dev) dev environments. It runs lo
 
 `setup.sh` is the entry point. It can run locally (`bash setup.sh`) or be fetched remotely (`curl | bash`). It detects which mode it's in by checking if `scripts/install_docker.sh` exists next to itself. In remote mode, each sub-script is downloaded to a temp file before execution.
 
+Invoking `setup.sh` without arguments or with `-h`/`--help` prints comprehensive
+usage information and exits successfully without loading configuration or
+changing a Sprite. Keep that help synchronized with `config.yaml`.
+
 **Critical: never pipe sub-scripts directly from curl to bash.** `sprite exec` consumes stdin, which breaks piped execution. Always download to a temp file first. See `run_script()` in setup.sh.
 
 ## Config system

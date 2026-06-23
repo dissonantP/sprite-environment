@@ -1,6 +1,119 @@
 #!/bin/bash
 set -e
 
+print_help() {
+  cat <<'EOF'
+Sprite environment bootstrap
+
+Creates a new Sprite, or reapplies the configured bootstrap to an existing
+Sprite. Defaults come from config.yaml next to this script. When config.yaml is
+not available locally, the published default config is downloaded from:
+
+  https://dissonantp.github.io/sprite-environment/config.yaml
+
+Usage:
+  ./setup.sh --name SPRITE_NAME [options]
+  ./setup.sh --help
+
+Examples:
+  ./setup.sh --name my-sprite
+  ./setup.sh --name form-forge --repo dissonantP/form-forge
+  ./setup.sh --name test-sprite --install_docker true
+  ./setup.sh --name test-sprite --dry-run
+
+Current default profile:
+  Enabled:  GitHub authentication, Codex, Yarn, Playwright MCP, Vercel MCP
+  Disabled: Docker, OpenSSH/sshd, cheatsheet
+  Model:    inherited from the top-level model in ~/.codex/config.toml
+  Repo:     none unless --repo is supplied
+
+Primary options:
+  --name NAME
+      Sprite name. Required, lowercase alphanumeric with optional hyphens.
+      --sprite_name NAME is also accepted as the underlying config-key form.
+
+  --repo OWNER/REPO
+      GitHub repository to clone into /home/sprite after provisioning.
+
+  --config PATH
+      Use a specific flat YAML configuration file instead of config.yaml.
+
+  --dry-run
+      Print the resolved provisioning plan without changing a Sprite.
+
+  -h, --help
+      Print this help and exit.
+
+Component options:
+  --install_gh BOOL
+      Authenticate GitHub CLI and upload the configured SSH key. Default: true.
+
+  --install_codex BOOL
+      Install Codex and copy local Codex authentication. Default: true.
+
+  --install_yarn BOOL
+      Install Yarn globally. Default: true.
+
+  --install_playwright_mcp BOOL
+      Install and register Playwright MCP. Requires Codex. Default: true.
+
+  --install_vercel_mcp BOOL
+      Register Vercel MCP and copy its scoped OAuth record. Requires Codex.
+      Default: true.
+
+  --install_docker BOOL
+      Install Sprite-compatible Docker Engine and Compose. Default: false.
+
+  --install_openssh BOOL
+      Install OpenSSH and register an sshd Sprite service. Default: false.
+
+  --install_cheatsheet BOOL
+      Install ~/CHEATSHEET.md on the Sprite. Default: false.
+
+Credential and component settings:
+  --gh_ssh_key PATH
+      Local SSH private key copied to the Sprite.
+      Default: $HOME/.ssh/id_ed25519
+
+  --codex_auth_file PATH
+      Local Codex authentication file copied to the Sprite.
+      Default: $HOME/.codex/auth.json
+
+  --codex_model MODEL
+      Codex model configured on the Sprite. By default, inherited locally.
+
+  --codex_mcp_credentials_file PATH
+      Local file-backed MCP OAuth store. Only Vercel records are copied.
+      Default: $HOME/.codex/.credentials.json
+
+  --vercel_mcp_url URL
+      Vercel MCP endpoint. Default: https://mcp.vercel.com
+
+Docker registry settings:
+  --docker_ghcr_login BOOL
+      Authenticate Docker with ghcr.io using the local gh token.
+      Requires GitHub setup. Default: true.
+
+  --docker_ghcr_user USER
+      GitHub Container Registry username. Default: dissonantP.
+
+Configuration:
+  Permanent defaults live in config.yaml. Command-line values override that
+  file for one run. Boolean values are written as true or false.
+
+  Resolution order:
+    1. Command-line options
+    2. The file supplied with --config
+    3. Local config.yaml
+    4. Published config.yaml
+EOF
+}
+
+if [[ $# -eq 0 ]]; then
+  print_help
+  exit 0
+fi
+
 ################################################################
 # Command line args (any --key value sets a config override)
 ################################################################
@@ -17,6 +130,7 @@ trap cleanup EXIT
 
 while [[ $# -gt 0 ]]; do
   case $1 in
+    -h|--help) print_help; exit 0 ;;
     --config) CONFIG_FILE="$2"; shift 2 ;;
     --name) echo "sprite_name: $2" >> "$_CLI_OVERRIDES"; shift 2 ;;
     --repo) echo "repo: $2" >> "$_CLI_OVERRIDES"; shift 2 ;;

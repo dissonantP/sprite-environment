@@ -21,6 +21,9 @@ Docker, OpenSSH/sshd, and the cheatsheet are disabled by default. Vercel MCP req
 bash setup.sh --name my-sprite
 ```
 
+Run `bash setup.sh --help`, or invoke it without arguments, to see the current
+default profile, examples, configuration resolution, and the full option list.
+
 ## Remote usage
 
 ```bash
