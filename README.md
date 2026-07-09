@@ -16,13 +16,13 @@ Create a Sprite with the default tools:
 Create a Sprite and clone a repository with repository-scoped push access:
 
 ```bash
-./setup.sh --name form-forge --repo dissonantP/form-forge
+./setup.sh --name form-forge --repo proteanP/form-forge
 ```
 
 Preview the resolved plan without changing anything:
 
 ```bash
-./setup.sh --name form-forge --repo dissonantP/form-forge --dry-run
+./setup.sh --name form-forge --repo proteanP/form-forge --dry-run
 ```
 
 Run `./setup.sh`, `./setup.sh --help`, or `./setup.sh -h` to print command
@@ -132,7 +132,7 @@ exit with status `2`.
 | `--gh_ssh_key PATH` | `$HOME/.ssh/id_ed25519` | Personal SSH private key copied only when broad GitHub authentication is enabled. The matching `.pub` file must exist. |
 | `--vercel_mcp_url URL` | `https://mcp.vercel.com` | Remote Vercel MCP endpoint. |
 | `--docker_ghcr_login BOOL` | `true` | Log Docker into `ghcr.io` using the GitHub token. Relevant only when Docker and broad GitHub authentication are enabled. |
-| `--docker_ghcr_user USER` | `dissonantP` | Username supplied for `ghcr.io` authentication. |
+| `--docker_ghcr_user USER` | `proteanP` | Username supplied for `ghcr.io` authentication. |
 
 ## Configuration
 
@@ -193,7 +193,7 @@ Then apply it with:
 | `vercel_mcp_url` | `https://mcp.vercel.com` | Vercel MCP URL. |
 | `install_docker` | `false` | Install Docker Engine and Compose. |
 | `docker_ghcr_login` | `true` | Authenticate Docker with GitHub Container Registry. |
-| `docker_ghcr_user` | `dissonantP` | GitHub Container Registry username. |
+| `docker_ghcr_user` | `proteanP` | GitHub Container Registry username. |
 | `install_openssh` | `false` | Install OpenSSH server and configure `sshd`. |
 | `install_cheatsheet` | `false` | Install the Sprite cheatsheet. |
 
@@ -244,7 +244,7 @@ Explicitly enable Vercel MCP:
 The repository is published through GitHub Pages:
 
 ```bash
-curl -fsSL https://dissonantp.github.io/sprite-environment/setup.sh \
+curl -fsSL https://proteanp.github.io/sprite-environment/setup.sh \
   -o /tmp/setup.sh
 bash /tmp/setup.sh --name app-dev --repo owner/app
 ```

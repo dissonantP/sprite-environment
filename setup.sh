@@ -9,7 +9,7 @@ Creates a new Sprite, or reapplies the configured bootstrap to an existing
 Sprite. Defaults come from config.yaml next to this script. When config.yaml is
 not available locally, the published default config is downloaded from:
 
-  https://dissonantp.github.io/sprite-environment/config.yaml
+  https://proteanp.github.io/sprite-environment/config.yaml
 
 Usage:
   ./setup.sh --name SPRITE_NAME [options]
@@ -17,7 +17,7 @@ Usage:
 
 Examples:
   ./setup.sh --name my-sprite
-  ./setup.sh --name form-forge --repo dissonantP/form-forge
+  ./setup.sh --name form-forge --repo proteanP/form-forge
   ./setup.sh --name test-sprite --install_docker true
   ./setup.sh --name test-sprite --install_docker=true
   ./setup.sh --name test-sprite --dry-run
@@ -105,7 +105,7 @@ Docker registry settings:
       Requires GitHub setup. Default: true.
 
   --docker_ghcr_user USER
-      GitHub Container Registry username. Default: dissonantP.
+      GitHub Container Registry username. Default: proteanP.
 
 Configuration:
   Permanent defaults live in config.yaml. Command-line values override that
@@ -209,7 +209,7 @@ done
 ################################################################
 
 DIR="$(cd "$(dirname "$0")" 2>/dev/null && pwd)"
-BASE_URL="https://dissonantp.github.io/sprite-environment"
+BASE_URL="https://proteanp.github.io/sprite-environment"
 
 # Parse a value from config YAML (flat key: value only)
 # Resolution: CLI overrides > --config file > local config.yaml > remote config.yaml
@@ -267,7 +267,7 @@ export INSTALL_VERCEL_MCP=$(cfg install_vercel_mcp false)
 export CONFIGURE_REPO_DEPLOY_KEY=$(cfg configure_repo_deploy_key true)
 export INSTALL_CHEATSHEET=$(cfg install_cheatsheet false)
 export DOCKER_GHCR_LOGIN=$(cfg docker_ghcr_login true)
-export DOCKER_GHCR_USER=$(cfg docker_ghcr_user dissonantP)
+export DOCKER_GHCR_USER=$(cfg docker_ghcr_user proteanP)
 export GH_SSH_KEY=$(cfg gh_ssh_key "$HOME/.ssh/id_ed25519")
 export CODEX_AUTH_FILE=$(cfg codex_auth_file "$HOME/.codex/auth.json")
 export CODEX_MODEL=$(cfg codex_model "")
