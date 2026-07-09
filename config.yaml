@@ -41,7 +41,7 @@ install_yarn: true
 docker_ghcr_login: true
 
 # GitHub username for ghcr.io login
-docker_ghcr_user: dissonantP
+docker_ghcr_user: proteanP
 
 # ── GitHub CLI ─────────────────────────────────────────
 # Copy broad gh authentication and a personal SSH key to the Sprite.

@@ -28,7 +28,7 @@ EOF
 
 # Login to ghcr.io (uses local gh token)
 GHCR_LOGIN="${DOCKER_GHCR_LOGIN:-true}"
-GHCR_USER="${DOCKER_GHCR_USER:-dissonantP}"
+GHCR_USER="${DOCKER_GHCR_USER:-proteanP}"
 if [ "$GHCR_LOGIN" = "true" ]; then
   GH_TOKEN=$(gh auth token 2>/dev/null || true)
   if [ -n "$GH_TOKEN" ]; then

@@ -4,7 +4,7 @@ Keep this file and `README.md` up to date when making changes. This file is for 
 
 ## Overview
 
-This repo provisions [Sprites](https://sprites.dev) dev environments. It runs locally on the user's machine and uses `sprite exec` to run commands on the remote sprite. Scripts are served via GitHub Pages at `https://dissonantp.github.io/sprite-environment/` so project repos can call setup without cloning this repo.
+This repo provisions [Sprites](https://sprites.dev) dev environments. It runs locally on the user's machine and uses `sprite exec` to run commands on the remote sprite. Scripts are served via GitHub Pages at `https://proteanp.github.io/sprite-environment/` so project repos can call setup without cloning this repo.
 
 ## Execution model
 
@@ -45,7 +45,7 @@ Config keys:
 | `install_openssh` | bool | `false` | Install OpenSSH server and register `sshd` as a sprite service. |
 | `install_cheatsheet` | bool | `false` | Install `~/CHEATSHEET.md`. |
 | `docker_ghcr_login` | bool | `true` | Login to ghcr.io using gh token. Requires `install_gh: true`. |
-| `docker_ghcr_user` | string | `dissonantP` | GitHub username for ghcr.io auth. |
+| `docker_ghcr_user` | string | `proteanP` | GitHub username for ghcr.io auth. |
 | `install_yarn` | bool | `true` | Install Yarn globally via npm. |
 | `install_codex` | bool | `true` | Install Codex CLI globally via npm. |
 | `codex_auth_file` | path | `$HOME/.codex/auth.json` | Local auth file to copy into sprite. |
@@ -181,4 +181,4 @@ scripts/
 
 ## GitHub Pages
 
-The repo is public. Pages serves from the `master` branch root. Deploys take ~30-60 seconds after push. All files in the repo are accessible at `https://dissonantp.github.io/sprite-environment/<path>`.
+The repo is public. Pages serves from the `master` branch root. Deploys take ~30-60 seconds after push. All files in the repo are accessible at `https://proteanp.github.io/sprite-environment/<path>`.
