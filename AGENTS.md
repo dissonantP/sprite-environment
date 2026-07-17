@@ -67,8 +67,9 @@ Config keys:
 6. **install_codex.sh** — Installs via npm, copies auth file using `sprite exec --file`.
 7. **install_playwright_mcp.sh** — Installs via npm, installs Chrome, registers with `codex mcp add`.
 8. **install_vercel_mcp.sh** — Optional Vercel MCP registration and credential transfer.
-9. **install_cheatsheet.sh** — Optionally writes ~/CHEATSHEET.md on the sprite.
-10. **validate.sh** — Checks all components are working.
+9. **install_codex.sh (finalization)** — Reasserts the selected model and authentication after MCP commands, which may rewrite `config.toml`.
+10. **install_cheatsheet.sh** — Optionally writes ~/CHEATSHEET.md on the sprite.
+11. **validate.sh** — Checks all components are working.
 
 Each script is idempotent with a guard clause at the top (checks if already installed, exits 0 if so).
 Validation only checks components enabled in the resolved provisioning plan. Docker, OpenSSH/sshd, and the cheatsheet are opt-in.

@@ -48,6 +48,8 @@ The standard profile disables:
 
 The Codex model is inherited from the top-level `model` setting in the local
 `~/.codex/config.toml`, unless `codex_model` is configured explicitly.
+After MCP registration, setup reapplies the selected model and authentication
+because Codex MCP commands may rewrite `config.toml`.
 
 ## Repository access and security
 
