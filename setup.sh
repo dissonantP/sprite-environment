@@ -429,6 +429,14 @@ else
   echo "==> Skipping Vercel MCP"
 fi
 
+# Codex MCP commands can rewrite config.toml. Reassert the selected model and
+# authentication after all MCP registration so validation sees the intended
+# final configuration.
+if [ "$INSTALL_CODEX" = "true" ]; then
+  echo "==> Finalizing Codex configuration"
+  run_script "scripts/install_codex.sh"
+fi
+
 # CLONE REPO USING BROAD GH AUTH
 if [ -n "$REPO" ] && [ "$CONFIGURE_REPO_DEPLOY_KEY" != "true" ]; then
   echo "==> Cloning repo: $REPO"
