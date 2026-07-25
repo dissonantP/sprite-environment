@@ -6,6 +6,9 @@ sprite exec -s "$SPRITE_NAME" -- env \
   INSTALL_DOCKER="${INSTALL_DOCKER:-false}" \
   INSTALL_YARN="${INSTALL_YARN:-true}" \
   INSTALL_CODEX="${INSTALL_CODEX:-true}" \
+  CODEX_VERSION="${CODEX_VERSION:-}" \
+  CODEX_REASONING_EFFORT="${CODEX_REASONING_EFFORT:-}" \
+  CODEX_SANDBOX_MODE="${CODEX_SANDBOX_MODE:-danger-full-access}" \
   INSTALL_PLAYWRIGHT_MCP="${INSTALL_PLAYWRIGHT_MCP:-true}" \
   INSTALL_VERCEL_MCP="${INSTALL_VERCEL_MCP:-false}" \
   INSTALL_CHEATSHEET="${INSTALL_CHEATSHEET:-false}" \
@@ -35,8 +38,11 @@ fi
 
 if [ "$INSTALL_CODEX" = "true" ]; then
   check "Codex installed" "command -v codex"
+  check "Codex version configured" "test \"\$(codex --version 2>/dev/null)\" = \"codex-cli \$CODEX_VERSION\""
   check "Codex auth configured" "test -f ~/.codex/auth.json"
   check "Codex model configured" "grep -q '^model = ' ~/.codex/config.toml"
+  check "Codex reasoning effort configured" "grep -q '^model_reasoning_effort = \"\$CODEX_REASONING_EFFORT\"' ~/.codex/config.toml"
+  check "Codex sandbox unrestricted" "grep -q '^sandbox_mode = \"\$CODEX_SANDBOX_MODE\"' ~/.codex/config.toml"
   check "Codex functional" 'codex --yolo exec "This is a test. Just output SUCCESS with no other output." </dev/null 2>&1 | grep -q SUCCESS'
 fi
 

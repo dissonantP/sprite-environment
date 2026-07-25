@@ -46,10 +46,12 @@ The standard profile disables:
 - OpenSSH server and `sshd`
 - `~/CHEATSHEET.md`
 
-The Codex model is inherited from the top-level `model` setting in the local
-`~/.codex/config.toml`, unless `codex_model` is configured explicitly.
-After MCP registration, setup reapplies the selected model and authentication
-because Codex MCP commands may rewrite `config.toml`.
+The Codex CLI version, model, and reasoning effort are inherited from the local
+Codex installation and top-level `~/.codex/config.toml` settings unless their
+`codex_*` options are configured explicitly. Sprites use the unrestricted
+`danger-full-access` Codex sandbox by default. After MCP registration, setup
+reapplies those settings and authentication because Codex MCP commands may
+rewrite `config.toml`.
 
 ## Repository access and security
 
@@ -114,7 +116,7 @@ exit with status `2`.
 
 | Option | Default | Description |
 |---|---:|---|
-| `--install_codex BOOL` | `true` | Install Codex CLI, configure its model, and copy local Codex authentication. |
+| `--install_codex BOOL` | `true` | Install the local Codex CLI version, configure its model/reasoning/sandbox settings, and copy local Codex authentication. |
 | `--install_yarn BOOL` | `true` | Install Yarn globally through npm. |
 | `--install_playwright_mcp BOOL` | `true` | Install Playwright MCP, install Chrome, and register the MCP with Codex. Requires Codex. |
 | `--configure_repo_deploy_key BOOL` | `true` | With `repo` set, generate and register a repository-scoped write deploy key, clone the repository, and verify push access. |
@@ -130,6 +132,9 @@ exit with status `2`.
 |---|---|---|
 | `--codex_auth_file PATH` | `$HOME/.codex/auth.json` | Local Codex authentication file copied to the Sprite. |
 | `--codex_model MODEL` | inherited | Codex model written to the Sprite's `~/.codex/config.toml`. |
+| `--codex_version VERSION` | inherited | Exact local Codex CLI version installed on the Sprite. |
+| `--codex_reasoning_effort EFFORT` | inherited | Codex reasoning effort written to the Sprite config. |
+| `--codex_sandbox_mode MODE` | `danger-full-access` | Codex sandbox mode written to the Sprite config. |
 | `--codex_mcp_credentials_file PATH` | `$HOME/.codex/.credentials.json` | Local file-backed MCP OAuth store used by the optional Vercel installer. Only Vercel records are selected. |
 | `--gh_ssh_key PATH` | `$HOME/.ssh/id_ed25519` | Personal SSH private key copied only when broad GitHub authentication is enabled. The matching `.pub` file must exist. |
 | `--vercel_mcp_url URL` | `https://mcp.vercel.com` | Remote Vercel MCP endpoint. |

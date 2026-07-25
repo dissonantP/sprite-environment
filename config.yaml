@@ -17,6 +17,18 @@ codex_auth_file: $HOME/.codex/auth.json
 # local ~/.codex/config.toml.
 codex_model:
 
+# Codex CLI version to install. When blank, inherit the local `codex --version`
+# version so newly provisioned Sprites match the host.
+codex_version:
+
+# Codex reasoning effort to configure. When blank, inherit the top-level
+# model_reasoning_effort from the local ~/.codex/config.toml.
+codex_reasoning_effort:
+
+# Sprites are the isolated execution boundary for delegated Codex tasks.
+# Keep their Codex sandbox unrestricted unless a caller explicitly overrides it.
+codex_sandbox_mode: danger-full-access
+
 # Local file-backed Codex MCP OAuth credential store. The Vercel installer
 # extracts and copies only Vercel's credential record.
 codex_mcp_credentials_file: $HOME/.codex/.credentials.json
