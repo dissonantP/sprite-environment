@@ -50,6 +50,9 @@ Config keys:
 | `install_codex` | bool | `true` | Install Codex CLI globally via npm. |
 | `codex_auth_file` | path | `$HOME/.codex/auth.json` | Local auth file to copy into sprite. |
 | `codex_model` | string | local top-level Codex model | Model written to the Sprite's `~/.codex/config.toml`. |
+| `codex_version` | semver | local `codex --version` | Exact Codex CLI version installed on the Sprite. |
+| `codex_reasoning_effort` | string | local top-level reasoning effort | Reasoning effort written to the Sprite config. |
+| `codex_sandbox_mode` | string | `danger-full-access` | Codex sandbox mode; Sprites are the isolated execution boundary. |
 | `codex_mcp_credentials_file` | path | `$HOME/.codex/.credentials.json` | Local file-backed MCP OAuth store; only Vercel records are copied. |
 | `repo` | string | (empty) | GitHub repo to clone (e.g. `owner/repo`). |
 | `configure_repo_deploy_key` | bool | `true` | With `repo`, generate a Sprite-local key and register it as a write-enabled deploy key. |

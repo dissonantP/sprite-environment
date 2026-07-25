@@ -271,6 +271,9 @@ export DOCKER_GHCR_USER=$(cfg docker_ghcr_user proteanP)
 export GH_SSH_KEY=$(cfg gh_ssh_key "$HOME/.ssh/id_ed25519")
 export CODEX_AUTH_FILE=$(cfg codex_auth_file "$HOME/.codex/auth.json")
 export CODEX_MODEL=$(cfg codex_model "")
+export CODEX_VERSION=$(cfg codex_version "")
+export CODEX_REASONING_EFFORT=$(cfg codex_reasoning_effort "")
+export CODEX_SANDBOX_MODE=$(cfg codex_sandbox_mode "danger-full-access")
 export CODEX_MCP_CREDENTIALS_FILE=$(cfg codex_mcp_credentials_file "$HOME/.codex/.credentials.json")
 export VERCEL_MCP_URL=$(cfg vercel_mcp_url "https://mcp.vercel.com")
 REPO=$(cfg repo "")
@@ -297,8 +300,33 @@ if [ "$INSTALL_CODEX" = "true" ] && [ -z "$CODEX_MODEL" ] && [ -f "$HOME/.codex/
   export CODEX_MODEL
 fi
 
+if [ "$INSTALL_CODEX" = "true" ] && [ -z "$CODEX_VERSION" ]; then
+  CODEX_VERSION=$(codex --version 2>/dev/null | sed -n 's/^codex-cli //p' | head -1)
+  export CODEX_VERSION
+fi
+
+if [ "$INSTALL_CODEX" = "true" ] && [ -z "$CODEX_REASONING_EFFORT" ] && [ -f "$HOME/.codex/config.toml" ]; then
+  CODEX_REASONING_EFFORT=$(sed -n 's/^model_reasoning_effort = "\([^"]*\)".*/\1/p' "$HOME/.codex/config.toml" | head -1)
+  export CODEX_REASONING_EFFORT
+fi
+
 if [ "$INSTALL_CODEX" = "true" ] && [[ ! "$CODEX_MODEL" =~ ^[A-Za-z0-9._-]+$ ]]; then
   echo "Error: codex_model must be configured or available in ~/.codex/config.toml"
+  exit 1
+fi
+
+if [ "$INSTALL_CODEX" = "true" ] && [[ ! "$CODEX_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "Error: codex_version must be configured or available from local codex --version"
+  exit 1
+fi
+
+if [ "$INSTALL_CODEX" = "true" ] && [[ ! "$CODEX_REASONING_EFFORT" =~ ^[A-Za-z0-9._-]+$ ]]; then
+  echo "Error: codex_reasoning_effort must be configured or available in ~/.codex/config.toml"
+  exit 1
+fi
+
+if [ "$INSTALL_CODEX" = "true" ] && [[ ! "$CODEX_SANDBOX_MODE" =~ ^[A-Za-z0-9._-]+$ ]]; then
+  echo "Error: codex_sandbox_mode must be a simple Codex sandbox mode"
   exit 1
 fi
 
@@ -315,6 +343,9 @@ print_plan() {
   echo "  Codex: $INSTALL_CODEX"
   if [ "$INSTALL_CODEX" = "true" ]; then
     echo "  Codex model: $CODEX_MODEL"
+    echo "  Codex version: $CODEX_VERSION"
+    echo "  Codex reasoning effort: $CODEX_REASONING_EFFORT"
+    echo "  Codex sandbox mode: $CODEX_SANDBOX_MODE"
   fi
   echo "  Yarn: $INSTALL_YARN"
   echo "  Playwright MCP: $INSTALL_PLAYWRIGHT_MCP"
