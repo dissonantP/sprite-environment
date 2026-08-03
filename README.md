@@ -46,6 +46,14 @@ The standard profile disables:
 - OpenSSH server and `sshd`
 - `~/CHEATSHEET.md`
 
+For MiniMax Sprites, use the dedicated OpenCode profile rather than routing
+MiniMax through Codex. It uses OpenCode's native MiniMax Token Plan provider
+and can register Parallel Search as a remote MCP.
+
+OpenCode is installed as the `opencode-ai` npm package rather than through its
+curl installer, since Sprite egress can reject the curl installer's GitHub
+releases API request.
+
 The Codex CLI version, model, and reasoning effort are inherited from the local
 Codex installation and top-level `~/.codex/config.toml` settings unless their
 `codex_*` options are configured explicitly. Sprites use the unrestricted
@@ -117,6 +125,10 @@ exit with status `2`.
 | Option | Default | Description |
 |---|---:|---|
 | `--install_codex BOOL` | `true` | Install the local Codex CLI version, configure its model/reasoning/sandbox settings, and copy local Codex authentication. |
+| `--install_opencode BOOL` | `false` | Install the OpenCode agent host. |
+| `--configure_minimax_token_plan BOOL` | `false` | Configure OpenCode's MiniMax Token Plan provider from local `MINIMAX_API_KEY`; requires OpenCode. |
+| `--opencode_model PROVIDER/MODEL` | `minimax-coding-plan/MiniMax-M3` | Model used for MiniMax OpenCode validation. |
+| `--install_parallel_search_mcp BOOL` | `false` | Register Parallel's anonymous remote search MCP with OpenCode; requires OpenCode. |
 | `--install_yarn BOOL` | `true` | Install Yarn globally through npm. |
 | `--install_playwright_mcp BOOL` | `true` | Install Playwright MCP, install Chrome, and register the MCP with Codex. Requires Codex. |
 | `--configure_repo_deploy_key BOOL` | `true` | With `repo` set, generate and register a repository-scoped write deploy key, clone the repository, and verify push access. |
@@ -163,6 +175,22 @@ Every configuration key can be overridden for one run:
   --install_docker true \
   --install_playwright_mcp false
 ```
+
+### MiniMax OpenCode profile
+
+The reusable MiniMax profile installs OpenCode, configures the MiniMax Token
+Plan provider, and adds Parallel Search. It intentionally does not install or
+authenticate Codex. Run it from a fish shell where `MINIMAX_API_KEY` is set:
+
+```fish
+bash ./setup.sh --name minimax-work --config ./profiles/minimax-opencode.yaml
+```
+
+The API key is not written to this repository or printed by the bootstrap. It
+is written only to the Sprite's mode-600 `~/.config/opencode/.env`; the
+bootstrap-installed `opencode` wrapper sources it for each invocation. This
+lets OpenCode load MiniMax through its normal `MINIMAX_API_KEY` environment
+provider instead of using its interactive credential store.
 
 A custom configuration file can define reusable profile defaults:
 

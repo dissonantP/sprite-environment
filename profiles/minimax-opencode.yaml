@@ -1,0 +1,8 @@
+# Portable MiniMax Sprite profile. Run setup.sh from fish with MINIMAX_API_KEY
+# exported. This profile deliberately uses OpenCode, not MiniMax-through-Codex.
+install_codex: false
+install_playwright_mcp: false
+install_opencode: true
+configure_minimax_token_plan: true
+opencode_model: minimax-coding-plan/MiniMax-M3
+install_parallel_search_mcp: true

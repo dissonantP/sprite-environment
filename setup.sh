@@ -262,6 +262,10 @@ export INSTALL_OPENSSH=$(cfg install_openssh false)
 export INSTALL_DOCKER=$(cfg install_docker false)
 export INSTALL_YARN=$(cfg install_yarn true)
 export INSTALL_CODEX=$(cfg install_codex true)
+export INSTALL_OPENCODE=$(cfg install_opencode false)
+export CONFIGURE_MINIMAX_TOKEN_PLAN=$(cfg configure_minimax_token_plan false)
+export OPENCODE_MODEL=$(cfg opencode_model "minimax-coding-plan/MiniMax-M3")
+export INSTALL_PARALLEL_SEARCH_MCP=$(cfg install_parallel_search_mcp false)
 export INSTALL_PLAYWRIGHT_MCP=$(cfg install_playwright_mcp true)
 export INSTALL_VERCEL_MCP=$(cfg install_vercel_mcp false)
 export CONFIGURE_REPO_DEPLOY_KEY=$(cfg configure_repo_deploy_key true)
@@ -287,6 +291,21 @@ fi
 
 if [ "$INSTALL_VERCEL_MCP" = "true" ] && [ "$INSTALL_CODEX" != "true" ]; then
   echo "Error: install_vercel_mcp requires install_codex"
+  exit 1
+fi
+
+if [ "$CONFIGURE_MINIMAX_TOKEN_PLAN" = "true" ] && [ "$INSTALL_OPENCODE" != "true" ]; then
+  echo "Error: configure_minimax_token_plan requires install_opencode"
+  exit 1
+fi
+
+if [ "$INSTALL_PARALLEL_SEARCH_MCP" = "true" ] && [ "$INSTALL_OPENCODE" != "true" ]; then
+  echo "Error: install_parallel_search_mcp requires install_opencode"
+  exit 1
+fi
+
+if [ "$INSTALL_OPENCODE" = "true" ] && [[ ! "$OPENCODE_MODEL" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+  echo "Error: opencode_model must be a simple provider/model identifier"
   exit 1
 fi
 
@@ -346,6 +365,12 @@ print_plan() {
     echo "  Codex version: $CODEX_VERSION"
     echo "  Codex reasoning effort: $CODEX_REASONING_EFFORT"
     echo "  Codex sandbox mode: $CODEX_SANDBOX_MODE"
+  fi
+  echo "  OpenCode: $INSTALL_OPENCODE"
+  if [ "$INSTALL_OPENCODE" = "true" ]; then
+    echo "  OpenCode model: $OPENCODE_MODEL"
+    echo "  MiniMax Token Plan: $CONFIGURE_MINIMAX_TOKEN_PLAN"
+    echo "  Parallel Search MCP: $INSTALL_PARALLEL_SEARCH_MCP"
   fi
   echo "  Yarn: $INSTALL_YARN"
   echo "  Playwright MCP: $INSTALL_PLAYWRIGHT_MCP"
@@ -442,6 +467,24 @@ if [ "$INSTALL_CODEX" = "true" ]; then
   run_script "scripts/install_codex.sh"
 else
   echo "==> Skipping Codex"
+fi
+
+# INSTALL OPENCODE / OPTIONAL MINIMAX TOKEN PLAN
+if [ "$INSTALL_OPENCODE" = "true" ]; then
+  echo "==> Installing OpenCode"
+  run_script "scripts/install_opencode.sh"
+else
+  echo "==> Skipping OpenCode"
+fi
+
+if [ "$CONFIGURE_MINIMAX_TOKEN_PLAN" = "true" ]; then
+  echo "==> Configuring MiniMax Token Plan for OpenCode"
+  run_script "scripts/configure_minimax_token_plan.sh"
+fi
+
+if [ "$INSTALL_PARALLEL_SEARCH_MCP" = "true" ]; then
+  echo "==> Installing Parallel Search MCP for OpenCode"
+  run_script "scripts/install_parallel_search_mcp.sh"
 fi
 
 # INSTALL PLAYWRIGHT MCP

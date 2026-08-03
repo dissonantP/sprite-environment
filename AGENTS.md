@@ -48,6 +48,10 @@ Config keys:
 | `docker_ghcr_user` | string | `proteanP` | GitHub username for ghcr.io auth. |
 | `install_yarn` | bool | `true` | Install Yarn globally via npm. |
 | `install_codex` | bool | `true` | Install Codex CLI globally via npm. |
+| `install_opencode` | bool | `false` | Install the OpenCode agent host. |
+| `configure_minimax_token_plan` | bool | `false` | Store the host `MINIMAX_API_KEY` in the Sprite's mode-600 OpenCode `.env`; requires OpenCode. |
+| `opencode_model` | string | `minimax-coding-plan/MiniMax-M3` | Default MiniMax model for OpenCode validation. |
+| `install_parallel_search_mcp` | bool | `false` | Register Parallel's anonymous remote search MCP with OpenCode. |
 | `codex_auth_file` | path | `$HOME/.codex/auth.json` | Local auth file to copy into sprite. |
 | `codex_model` | string | local top-level Codex model | Model written to the Sprite's `~/.codex/config.toml`. |
 | `codex_version` | semver | local `codex --version` | Exact Codex CLI version installed on the Sprite. |
@@ -68,11 +72,14 @@ Config keys:
 4. **install_docker.sh** — Must use `docker.io` from apt (not `docker-ce`). Uses overlay2 storage driver. Daemon started via `sprite-env services create` (not systemd/nohup). All docker commands require `sudo`.
 5. **install_yarn.sh** — Installs Yarn globally via npm.
 6. **install_codex.sh** — Installs via npm, copies auth file using `sprite exec --file`.
-7. **install_playwright_mcp.sh** — Installs via npm, installs Chrome, registers with `codex mcp add`.
-8. **install_vercel_mcp.sh** — Optional Vercel MCP registration and credential transfer.
-9. **install_codex.sh (finalization)** — Reasserts the selected model and authentication after MCP commands, which may rewrite `config.toml`.
-10. **install_cheatsheet.sh** — Optionally writes ~/CHEATSHEET.md on the sprite.
-11. **validate.sh** — Checks all components are working.
+7. **install_opencode.sh** — Installs the `opencode-ai` package globally with npm and allows only that package's required postinstall script. It links npm's NVM-managed global executable into `~/.local/bin` for noninteractive Sprite commands. This avoids the upstream installer's GitHub releases API lookup, which can be blocked on Sprites.
+8. **configure_minimax_token_plan.sh** — Opt-in MiniMax setup; reads only `MINIMAX_API_KEY` from the local fish environment and writes it only to the Sprite's mode-600 `~/.config/opencode/.env`. The OpenCode wrapper sources this file for every invocation.
+9. **install_parallel_search_mcp.sh** — Opt-in registration of `https://search.parallel.ai/mcp` for OpenCode.
+10. **install_playwright_mcp.sh** — Installs via npm, installs Chrome, registers with `codex mcp add`.
+11. **install_vercel_mcp.sh** — Optional Vercel MCP registration and credential transfer.
+12. **install_codex.sh (finalization)** — Reasserts the selected model and authentication after MCP commands, which may rewrite `config.toml`.
+13. **install_cheatsheet.sh** — Optionally writes ~/CHEATSHEET.md on the sprite.
+14. **validate.sh** — Checks all components are working.
 
 Each script is idempotent with a guard clause at the top (checks if already installed, exits 0 if so).
 Validation only checks components enabled in the resolved provisioning plan. Docker, OpenSSH/sshd, and the cheatsheet are opt-in.
@@ -169,6 +176,9 @@ scripts/
   install_docker.sh           # docker.io + compose plugin + overlay2 + sprite service + ghcr.io login
   install_yarn.sh             # yarn package manager via npm
   install_codex.sh            # codex CLI + auth file copy
+  install_opencode.sh         # OpenCode agent host
+  configure_minimax_token_plan.sh # opt-in MiniMax Token Plan login
+  install_parallel_search_mcp.sh # optional Parallel remote search MCP
   install_playwright_mcp.sh   # playwright MCP + chrome + codex registration
   install_vercel_mcp.sh       # Vercel MCP registration + scoped OAuth credential transfer
   install_cheatsheet.sh       # ~/CHEATSHEET.md on sprite
