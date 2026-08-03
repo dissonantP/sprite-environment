@@ -6,6 +6,10 @@ sprite exec -s "$SPRITE_NAME" -- env \
   INSTALL_DOCKER="${INSTALL_DOCKER:-false}" \
   INSTALL_YARN="${INSTALL_YARN:-true}" \
   INSTALL_CODEX="${INSTALL_CODEX:-true}" \
+  INSTALL_OPENCODE="${INSTALL_OPENCODE:-false}" \
+  CONFIGURE_MINIMAX_TOKEN_PLAN="${CONFIGURE_MINIMAX_TOKEN_PLAN:-false}" \
+  OPENCODE_MODEL="${OPENCODE_MODEL:-minimax-coding-plan/MiniMax-M3}" \
+  INSTALL_PARALLEL_SEARCH_MCP="${INSTALL_PARALLEL_SEARCH_MCP:-false}" \
   CODEX_VERSION="${CODEX_VERSION:-}" \
   CODEX_REASONING_EFFORT="${CODEX_REASONING_EFFORT:-}" \
   CODEX_SANDBOX_MODE="${CODEX_SANDBOX_MODE:-danger-full-access}" \
@@ -44,6 +48,19 @@ if [ "$INSTALL_CODEX" = "true" ]; then
   check "Codex reasoning effort configured" "grep -q '^model_reasoning_effort = \"\$CODEX_REASONING_EFFORT\"' ~/.codex/config.toml"
   check "Codex sandbox unrestricted" "grep -q '^sandbox_mode = \"\$CODEX_SANDBOX_MODE\"' ~/.codex/config.toml"
   check "Codex functional" 'codex --yolo exec "This is a test. Just output SUCCESS with no other output." </dev/null 2>&1 | grep -q SUCCESS'
+fi
+
+if [ "$INSTALL_OPENCODE" = "true" ]; then
+  check "OpenCode installed" "command -v opencode"
+fi
+
+if [ "$CONFIGURE_MINIMAX_TOKEN_PLAN" = "true" ]; then
+  check "MiniMax Token Plan configured" "opencode auth list 2>&1 | grep -q 'MiniMax Token Plan (minimax.io)'"
+  check "MiniMax OpenCode functional" 'opencode run --model "$OPENCODE_MODEL" "Reply with exactly: SUCCESS" </dev/null 2>&1 | grep -q SUCCESS'
+fi
+
+if [ "$INSTALL_PARALLEL_SEARCH_MCP" = "true" ]; then
+  check "Parallel Search MCP connected" "opencode mcp list 2>&1 | grep -q 'parallel-search.*connected'"
 fi
 
 if [ "$INSTALL_PLAYWRIGHT_MCP" = "true" ]; then

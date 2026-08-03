@@ -10,6 +10,21 @@ sprite_name:
 # Install OpenAI Codex CLI and copy auth config
 install_codex: true
 
+# ── OpenCode / MiniMax ─────────────────────────────────
+# Install the provider-neutral OpenCode agent host. Disabled in the standard
+# profile; see profiles/minimax-opencode.yaml for the MiniMax profile.
+install_opencode: false
+
+# Configure OpenCode's MiniMax Token Plan provider using only the host's
+# MINIMAX_API_KEY environment variable. The key is never stored in this repo.
+configure_minimax_token_plan: false
+
+# Default OpenCode model used by the MiniMax profile.
+opencode_model: minimax-coding-plan/MiniMax-M3
+
+# Register Parallel's anonymous remote web-search MCP with OpenCode.
+install_parallel_search_mcp: false
+
 # Local path to Codex auth file (copied into the sprite)
 codex_auth_file: $HOME/.codex/auth.json
 
